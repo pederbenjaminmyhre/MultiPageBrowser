@@ -331,19 +331,59 @@ namespace BrowserTabManager
             tab_TitleLabel.Content = tabTitleTextBlock;
             tab_TitleLabel.MouseLeftButtonUp += TabTitleLabel_Click;
 
+            tab_TitleLabel.MouseEnter += (s, e) =>
+            {
+                if (s is Label lbl)
+                {
+                    var anim = new System.Windows.Media.Animation.ColorAnimation
+                    {
+                        To = (Color)ColorConverter.ConvertFromString("#FFEFEFEF"),
+                        Duration = new Duration(TimeSpan.FromMilliseconds(200))
+                    };
+                    var brush = lbl.Background as SolidColorBrush;
+                    if (brush == null || brush.IsFrozen || brush == Brushes.Transparent)
+                    {
+                        brush = new SolidColorBrush(Colors.Transparent);
+                        lbl.Background = brush;
+                    }
+                    brush.BeginAnimation(SolidColorBrush.ColorProperty, anim);
+                }
+            };
+            tab_TitleLabel.MouseLeave += (s, e) =>
+            {
+                if (s is Label lbl)
+                {
+                    var anim = new System.Windows.Media.Animation.ColorAnimation
+                    {
+                        To = Colors.Transparent,
+                        Duration = new Duration(TimeSpan.FromMilliseconds(200))
+                    };
+                    var brush = lbl.Background as SolidColorBrush;
+                    if (brush == null || brush.IsFrozen)
+                    {
+                        brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFEFEFEF"));
+                        lbl.Background = brush;
+                    }
+                    brush.BeginAnimation(SolidColorBrush.ColorProperty, anim);
+                }
+            };
+
             // Frame Border
             var frame_Border = new Border
             {
                 BorderBrush = Brushes.Gray, // Set to gray
                 BorderThickness = new Thickness(1),
-                Margin = new Thickness(4) // Add margin around the frame
-                // No CornerRadius, no Effect (shadow)
+                Margin = new Thickness(4), // Add margin around the frame
+                Background = Brushes.White // Set background to white
             };
             customTab.Frame_Border = frame_Border;
             frame_Border.Tag = customTab;
 
             // Frame Grid
-            var frame_Grid = new Grid();
+            var frame_Grid = new Grid
+            {
+                Background = Brushes.White // Set background to white
+            };
             frame_Border.Child = frame_Grid;
             customTab.Frame_Grid = frame_Grid;
             frame_Grid.Tag = customTab;
@@ -354,13 +394,14 @@ namespace BrowserTabManager
             // Frame Title Grid
             var frameTitle_Grid = new Grid
             {
-                Background = new SolidColorBrush(Color.FromRgb(221, 221, 221)) // Gray (same as default Button background)
+                Background = Brushes.White // Set background to white
             };
             Grid.SetRow(frameTitle_Grid, 0);
             frame_Grid.Children.Add(frameTitle_Grid);
             customTab.FrameTitle_Grid = frameTitle_Grid;
             frameTitle_Grid.Tag = customTab;
             frameTitle_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            frameTitle_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             frameTitle_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             frameTitle_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
@@ -371,15 +412,156 @@ namespace BrowserTabManager
             customTab.FrameAddress_Grid = frameAddress_Grid;
             frameAddress_Grid.Tag = customTab;
             frameAddress_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            frameAddress_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             frameAddress_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            // Replace the text content with an image for the refresh button
+            var frame_RefreshButton = new Button { Name = "btnRefresh", Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.White, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
+            frame_RefreshButton.ToolTip = "Refresh";
+            var refreshImage = new Image
+            {
+                Source = new BitmapImage(new Uri("pack://application:,,,/Refresh.png")),
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            frame_RefreshButton.Content = refreshImage;
+            Grid.SetColumn(frame_RefreshButton, 0);
+            frameAddress_Grid.Children.Add(frame_RefreshButton);
+            customTab.Frame_RefreshButton = frame_RefreshButton;
+            frame_RefreshButton.Tag = customTab;
+            frame_RefreshButton.Click += (s, e) =>
+            {
+                if (s is Button btn && btn.Tag is CustomTab tab && tab.Frame_WebView != null)
+                {
+                    tab.Frame_WebView.Reload();
+                }
+            };
+
+            // Frame Back Button
+            var frame_BackButton = new Button { Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.White, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
+            frame_BackButton.ToolTip = "Back";
+            var backImage = new Image
+            {
+                Source = new BitmapImage(new Uri("pack://application:,,,/Back.png")),
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            frame_BackButton.Content = backImage;
+            Grid.SetColumn(frame_BackButton, 1);
+            frameAddress_Grid.Children.Add(frame_BackButton);
+            customTab.Frame_BackButton = frame_BackButton;
+            frame_BackButton.Tag = customTab;
+            frame_BackButton.Click += FrameBackButton_Click;
+
+            // Frame Url TextBox
+            var frame_UrlTextBox = new TextBox();
+            Grid.SetColumn(frame_UrlTextBox, 2);
+            frameAddress_Grid.Children.Add(frame_UrlTextBox);
+            customTab.Frame_UrlTextBox = frame_UrlTextBox;
+            frame_UrlTextBox.Tag = customTab;
+            frame_UrlTextBox.Text = urlString;
+            frame_UrlTextBox.KeyDown += FrameUrlTextBox_KeyDown;
+
+            frame_UrlTextBox.PreviewMouseDown += (s, e) =>
+            {
+                if (s is TextBox tb && tb.Tag is CustomTab tab)
+                {
+                    if (!tb.IsKeyboardFocusWithin)
+                    {
+                        // Let the default focus behavior run
+                        tab.frameUrlTextBoxClickState = 0;
+                        return;
+                    }
+                    tab.frameUrlTextBoxClickState = (tab.frameUrlTextBoxClickState + 1) % 3;
+                    if (tab.frameUrlTextBoxClickState == 0)
+                    {
+                        // Cursor only, let default behavior
+                        return;
+                    }
+                    else if (tab.frameUrlTextBoxClickState == 1)
+                    {
+                        // Highlight current word
+                        int caret = tb.CaretIndex;
+                        string text = tb.Text;
+                        if (string.IsNullOrEmpty(text)) return;
+                        int start = caret;
+                        int end = caret;
+                        while (start > 0 && !char.IsWhiteSpace(text[start - 1]) && text[start - 1] != '.' && text[start - 1] != '/' && text[start - 1] != '?') start--;
+                        while (end < text.Length && !char.IsWhiteSpace(text[end]) && text[end] != '.' && text[end] != '/' && text[end] != '?') end++;
+                        tb.SelectionStart = start;
+                        tb.SelectionLength = end - start;
+                        e.Handled = true;
+                    }
+                    else if (tab.frameUrlTextBoxClickState == 2)
+                    {
+                        // Highlight all
+                        tb.SelectAll();
+                        e.Handled = true;
+                    }
+                }
+            };
+
+            // Frame Close Button
+            var frame_CloneButton = new Button { Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.White, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
+            frame_CloneButton.ToolTip = "Clone";
+            var cloneImage = new Image
+            {
+                Source = new BitmapImage(new Uri("pack://application:,,,/Clone.png")),
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            frame_CloneButton.Content = cloneImage;
+            Grid.SetColumn(frame_CloneButton, 1);
+            frameTitle_Grid.Children.Add(frame_CloneButton);
+            customTab.Frame_CloneButton = frame_CloneButton;
+            frame_CloneButton.Tag = customTab;
+            frame_CloneButton.Click += (s, e) => CloneTab(customTab);
+
+            // Frame Close Button
+            var frame_CloseButton = new Button { Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.White, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
+            frame_CloseButton.ToolTip = "Close";
+            var closeImage = new Image
+            {
+                Source = new BitmapImage(new Uri("pack://application:,,,/Close.png")),
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            frame_CloseButton.Content = closeImage;
+            Grid.SetColumn(frame_CloseButton, 3);
+            frameTitle_Grid.Children.Add(frame_CloseButton);
+            customTab.Frame_CloseButton = frame_CloseButton;
+            frame_CloseButton.Tag = customTab;
+            frame_CloseButton.Click += (s, e) => CloseTab(customTab);
+
+            // Frame Hide Button
+            var frame_HideButton = new Button { Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.White, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
+            frame_HideButton.ToolTip = "Hide";
+            var minimizeImage = new Image
+            {
+                Source = new BitmapImage(new Uri("pack://application:,,,/Minimize.png")),
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            frame_HideButton.Content = minimizeImage;
+            Grid.SetColumn(frame_HideButton, 2);
+            frameTitle_Grid.Children.Add(frame_HideButton);
+            customTab.Frame_HideButton = frame_HideButton;
+            frame_HideButton.Tag = customTab;
+            frame_HideButton.Click += (s, e) => HideTabFrame(customTab);
 
             // Frame Title TextBox
             var frame_TitleTextBox = new TextBox
             {
                 Foreground = Brushes.Black, // Set to Black
                 FontWeight = FontWeights.SemiBold, // Set to SemiBold
-                Background = Brushes.Transparent,
-                BorderThickness = new Thickness(0)
+                Background = Brushes.White, // Set background to White
+                BorderThickness = new Thickness(0),
+                Margin = new Thickness(0, 0, 15, 0) // Add right margin of 15
             };
             Grid.SetColumn(frame_TitleTextBox, 0);
             frameTitle_Grid.Children.Add(frame_TitleTextBox);
@@ -387,39 +569,6 @@ namespace BrowserTabManager
             frame_TitleTextBox.Tag = customTab;
             frame_TitleTextBox.Text = nameString;
             frame_TitleTextBox.TextChanged += FrameTitleTextBox_TextChanged;
-
-            // Frame Url TextBox
-            var frame_UrlTextBox = new TextBox();
-            Grid.SetColumn(frame_UrlTextBox, 1);
-            frameAddress_Grid.Children.Add(frame_UrlTextBox);
-            customTab.Frame_UrlTextBox = frame_UrlTextBox;
-            frame_UrlTextBox.Tag = customTab;
-            frame_UrlTextBox.Text = urlString;
-            frame_UrlTextBox.KeyDown += FrameUrlTextBox_KeyDown;
-
-            // Frame Close Button
-            var frame_CloseButton = new Button { Content = "X", Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold };
-            Grid.SetColumn(frame_CloseButton, 2);
-            frameTitle_Grid.Children.Add(frame_CloseButton);
-            customTab.Frame_CloseButton = frame_CloseButton;
-            frame_CloseButton.Tag = customTab;
-            frame_CloseButton.Click += (s, e) => CloseTab(customTab);
-
-            // Frame Hide Button
-            var frame_HideButton = new Button { Content = "-", Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold };
-            Grid.SetColumn(frame_HideButton, 1);
-            frameTitle_Grid.Children.Add(frame_HideButton);
-            customTab.Frame_HideButton = frame_HideButton;
-            frame_HideButton.Tag = customTab;
-            frame_HideButton.Click += (s, e) => HideTabFrame(customTab);
-
-            // Frame Back Button
-            var frame_BackButton = new Button { Content = "<", Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold };
-            Grid.SetColumn(frame_BackButton, 0);
-            frameAddress_Grid.Children.Add(frame_BackButton);
-            customTab.Frame_BackButton = frame_BackButton;
-            frame_BackButton.Tag = customTab;
-            frame_BackButton.Click += FrameBackButton_Click;
 
             // Frame WebView2
             var frame_WebView = new WebView2();
@@ -848,6 +997,11 @@ namespace BrowserTabManager
             }
         }
 
+        public void CloneTab(CustomTab customTab)
+        {
+
+        }
+
         private void FrameTitleTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is TextBox textBox && textBox.Tag is CustomTab customTab && customTab.Tab_TitleLabel != null)
@@ -868,6 +1022,8 @@ namespace BrowserTabManager
             public string URL { get; set; }
             public bool DisplayFrame { get; set; } = true;
         }
+
+
     }
 
 
@@ -925,8 +1081,11 @@ namespace BrowserTabManager
         public TextBox Frame_TitleTextBox { get; set; }
         public TextBox Frame_UrlTextBox { get; set; }
         public Button Frame_CloseButton { get; set; }
+        public Button Frame_RefreshButton { get; set; }
+        public Button Frame_CloneButton { get; set; }
         public Button Frame_HideButton { get; set; }
         public Button Frame_BackButton { get; set; }
         public WebView2 Frame_WebView { get; set; }
+        public int frameUrlTextBoxClickState { get; set; } = 0; // 0: cursor, 1: word, 2: all
     }
 }
