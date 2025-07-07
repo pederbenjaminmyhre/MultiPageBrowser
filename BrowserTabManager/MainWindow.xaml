@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:BrowserTabManager"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid x:Name="MasterGrid">
+    <Grid x:Name="MasterGrid" Margin="0,0,5,0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150" />
             <ColumnDefinition Width="4" />
@@ -57,14 +57,15 @@
                 <RowDefinition Height="50" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
+            <Grid x:Name="FeatureBanner" Grid.Row="0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Vertical" Grid.Column="0">
+                <StackPanel Orientation="Vertical" Grid.Column="1">
                     <Label Content="Start Browsing" Foreground="Gray" FontSize="12" Margin="8,0,8,2" HorizontalAlignment="Center" />
-                    <TextBox x:Name="txtLaunchUrl" Margin="8,0,8,8" Height="20">
+                    <TextBox x:Name="txtLaunchUrl" Margin="8,0,8,15" Height="20">
                         <TextBox.Style>
                             <Style TargetType="TextBox">
                                 <Setter Property="Template">
@@ -84,9 +85,13 @@
                         </TextBox.Style>
                     </TextBox>
                 </StackPanel>
-                <Button x:Name="btnAddRowToFramesGrid" Grid.Column="1" Content="Add Row" Width="80" Height="28" Margin="8,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Background="Transparent" Click="btnAddRowToFramesGrid_Click" />
+                <StackPanel Orientation="Horizontal" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8,8,8,0">
+                    <Label Content="Rows" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <Button x:Name="btnAddRowToFramesGrid" Content="+" Width="15" Height="15" Background="Transparent" Click="btnAddRowToFramesGrid_Click" VerticalContentAlignment="Center" Padding="0,0,0,1" />
+                    <Button x:Name="btnSubtractRowFromFramesGrid" Content="-" Width="15" Height="15" Background="Transparent" Click="btnSubtractRowFromFramesGrid_Click" VerticalContentAlignment="Center" Padding="0,0,0,1" />
+                </StackPanel>
             </Grid>
-            <Grid x:Name="FramesGrid" Grid.Row="1" Grid.Column="0">
+            <Grid x:Name="FramesGrid" Grid.Row="1" Grid.Column="0" Margin="0,4,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
