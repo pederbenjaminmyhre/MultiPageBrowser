@@ -10,6 +10,8 @@
 
   <ItemGroup>
     <None Remove="Back.png" />
+    <None Remove="BookmarkOff.png" />
+    <None Remove="BookmarkOn.png" />
     <None Remove="Clone.png" />
     <None Remove="Close.png" />
     <None Remove="Minimize.png" />
@@ -27,6 +29,12 @@
 
   <ItemGroup>
     <Resource Include="Back.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="BookmarkOff.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="BookmarkOn.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Clone.png">

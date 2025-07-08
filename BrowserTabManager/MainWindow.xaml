@@ -16,13 +16,13 @@
         </Grid.ColumnDefinitions>
 
         <!-- Grid in Column 0 with two rows -->
-        <Grid x:Name="BookmarkGrid" Grid.Column="0" Background="#FFFFFFFF">
+        <Grid x:Name="BookmarkGrid" Grid.Column="0" Background="#E2E6EC">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="60" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" Orientation="Vertical">
-                <Label Content="Bookmarks" Foreground="Gray" FontSize="12" Margin="8,0,8,2" HorizontalAlignment="Center" />
+                <Label Content="Bookmarks" Foreground="Black" FontSize="12" Margin="8,0,8,2" HorizontalAlignment="Center" />
                 <TextBox x:Name="txtSearchBookmarks" Margin="8,0,8,8" Height="20">
                     <TextBox.Style>
                         <Style TargetType="TextBox">
@@ -54,18 +54,18 @@
         <!-- Grid in Column 2 with two rows -->
         <Grid x:Name="FeatureGrid" Grid.Column="2" Grid.Row="0"  Background="#FFFFFFFF">
             <Grid.RowDefinitions>
-                <RowDefinition Height="50" />
+                <RowDefinition Height="53" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Grid x:Name="FeatureBanner" Grid.Row="0">
+            <Grid x:Name="FeatureBanner" Grid.Row="0"  Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="100" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Vertical" Grid.Column="1">
-                    <Label Content="Start Browsing" Foreground="Gray" FontSize="12" Margin="8,0,8,2" HorizontalAlignment="Center" />
-                    <TextBox x:Name="txtLaunchUrl" Margin="8,0,8,15" Height="20">
+                    <Label Content="Start Browsing" Foreground="Black" FontSize="12" Margin="0,0,0,0" HorizontalAlignment="Center" />
+                    <TextBox x:Name="txtLaunchUrl" Margin="0,0,0,0" Height="20" MaxWidth="800">
                         <TextBox.Style>
                             <Style TargetType="TextBox">
                                 <Setter Property="Template">
@@ -78,7 +78,7 @@
                                     </Setter.Value>
                                 </Setter>
                                 <Setter Property="Background" Value="White"/>
-                                <Setter Property="BorderBrush" Value="#CCC"/>
+                                <Setter Property="BorderBrush" Value="Gray"/>
                                 <Setter Property="BorderThickness" Value="1"/>
                                 <Setter Property="Padding" Value="8,0,8,0"/>
                             </Style>
@@ -95,7 +95,7 @@
                     </Button>
                 </StackPanel>
             </Grid>
-            <Grid x:Name="FramesGrid" Grid.Row="1" Grid.Column="0" Margin="0,4,0,0">
+            <Grid x:Name="FramesGrid" Grid.Row="1" Grid.Column="0" Margin="0,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
@@ -109,13 +109,13 @@
         <GridSplitter Grid.Column="3" Width="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Background="#FFFFFFFF"/>
 
         <!-- Grid in Column 4 with two rows -->
-        <Grid x:Name="TabGrid" Grid.Column="4" Background="#FFFFFFFF">
+        <Grid x:Name="TabGrid" Grid.Column="4" Background="#E2E6EC">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" Orientation="Vertical">
-                <Label Content="Open Tabs" Foreground="Gray" FontSize="12" Margin="8,0,8,2" HorizontalAlignment="Center" />
+                <Label Content="Open Tabs" Foreground="Black" FontSize="12" Margin="8,0,8,2" HorizontalAlignment="Center" />
                 <TextBox x:Name="txtSearchTabs" Margin="8,0,8,8" Height="20">
                     <TextBox.Style>
                         <Style TargetType="TextBox">
@@ -136,8 +136,8 @@
                     </TextBox.Style>
                 </TextBox>
             </StackPanel>
-            <ScrollViewer x:Name ="TabScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <StackPanel x:Name="TabStack"  Orientation="Vertical"  />
+            <ScrollViewer x:Name ="TabScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="#E2E6EC">
+                <StackPanel x:Name="TabStack"  Orientation="Vertical" Background="#E2E6EC" />
             </ScrollViewer>
         </Grid>
     </Grid>
