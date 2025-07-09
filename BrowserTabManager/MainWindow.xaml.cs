@@ -16,6 +16,7 @@ using System.ComponentModel;
 using Microsoft.Web.WebView2.Core;
 using System.IO;
 using System.Text.Json;
+using BrowserTabManager;
 
 namespace BrowserTabManager
 {
@@ -25,22 +26,41 @@ namespace BrowserTabManager
     /// </summary>
     public partial class MainWindow : Window
     {
-        private List<CustomBookmark> BookmarksList = new List<CustomBookmark>();
-        private List<CustomTab> TabsList = new List<CustomTab>();
+        internal List<CustomBookmark> BookmarksList = new List<CustomBookmark>();
+        internal List<CustomTab> TabsList = new List<CustomTab>();
 
         // Static images for bookmark toggle
         private static readonly Image BookmarkOffImage = new Image {
-            Source = new BitmapImage(new Uri("pack://application:,,,/BookmarkOff.png")),
+            Source = new BitmapImage(new Uri("pack://application:,,,/Icons/BookmarkOff.png")),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center
         };
         private static readonly Image BookmarkOnImage = new Image {
-            Source = new BitmapImage(new Uri("pack://application:,,,/BookmarkOn.png")),
+            Source = new BitmapImage(new Uri("pack://application:,,,/Icons/BookmarkOn.png")),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center
         };
+
+        private static Image CreateBookmarkOffImage()
+        {
+            return new Image {
+                Source = new BitmapImage(new Uri("pack://application:,,,/Icons/BookmarkOff.png")),
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+        }
+        private static Image CreateBookmarkOnImage()
+        {
+            return new Image {
+                Source = new BitmapImage(new Uri("pack://application:,,,/Icons/BookmarkOn.png")),
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+        }
 
         //private TextBox txtLaunchUrl => (TextBox)this.FindName("txtLaunchUrl");
 
@@ -76,7 +96,7 @@ namespace BrowserTabManager
                 CreateBookmark("https://www.amazon.com/", "Amazon");
                 CreateBookmark("https://www.bing.com/", "Bing");
                 CreateBookmark("https://www.canva.com/", "Canva");
-                CreateBookmark("https://www.chatgpt.com/", "ChatGPT");
+                CreateBookmark("https://chatgpt.com/", "ChatGPT");
                 CreateBookmark("https://www.craigslist.org/", "Craigslist");
                 CreateBookmark("https://www.discord.com/", "Discord");
                 CreateBookmark("https://www.duckduckgo.com/", "DuckDuckGo");
@@ -122,7 +142,7 @@ namespace BrowserTabManager
                         foreach (var entry in tabs)
                         {
                             var tab = new CustomTab();
-                            CreateTab(entry.URL, entry.Title);
+                            TabHelper.CreateTab(this, entry.URL, entry.Title);
                             // Set displayFrame after tab is created
                             var createdTab = TabsList.LastOrDefault();
                             if (createdTab != null)
@@ -254,6 +274,9 @@ namespace BrowserTabManager
             // Add to stack (for initial creation)
             BookmarkStack.Children.Add(bookmarkBorder);
 
+            // Attach context menu for right-click
+            BookmarkContextMenuHelper.AttachContextMenu(this, customBookmark);
+
             // Attach click event to the bookmark label
             bookmarkNameLabel.MouseLeftButtonUp += BookmarkNameLabel_Click;
 
@@ -278,348 +301,17 @@ namespace BrowserTabManager
         {
             if (sender is Label label && label.Tag is CustomBookmark customBookmark)
             {
-                CreateTab(customBookmark.URL, label.Content?.ToString() ?? string.Empty);
+                TabHelper.CreateTab(this, customBookmark.URL, label.Content?.ToString() ?? string.Empty);
             }
-        }
-
-        private void CreateTabInternal(string urlString, string nameString, WebView2 webViewToClone = null)
-        {
-            var customTab = new CustomTab();
-            TabsList.Add(customTab);
-
-            // Tab Border
-            var tab_Border = new Border();
-            tab_Border.Background = Brushes.Transparent;
-            TabStack.Children.Add(tab_Border);
-            customTab.Tab_Border = tab_Border;
-            tab_Border.Tag = customTab;
-
-            // Tab Grid
-            var tab_Grid = new Grid();
-            tab_Grid.Background = Brushes.Transparent;
-            tab_Border.Child = tab_Grid;
-            customTab.Tab_Grid = tab_Grid;
-            tab_Grid.Tag = customTab;
-            tab_Grid.RowDefinitions.Add(new RowDefinition());
-            tab_Grid.ColumnDefinitions.Add(new ColumnDefinition());
-
-            // Tab Title Label
-            var tab_TitleLabel = new Label();
-            tab_TitleLabel.Margin = new Thickness(0, 3, 8, 3);
-            tab_TitleLabel.Background = Brushes.White;
-            var labelTemplate = new ControlTemplate(typeof(Label));
-            var borderFactory = new FrameworkElementFactory(typeof(Border));
-            borderFactory.SetValue(Border.CornerRadiusProperty, new CornerRadius(0,8,8,0));
-            borderFactory.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Label.BackgroundProperty));
-            borderFactory.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Label.BorderBrushProperty));
-            borderFactory.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Label.BorderThicknessProperty));
-            var contentPresenterFactory = new FrameworkElementFactory(typeof(ContentPresenter));
-            contentPresenterFactory.SetValue(ContentPresenter.ContentProperty, new TemplateBindingExtension(Label.ContentProperty));
-            contentPresenterFactory.SetValue(ContentPresenter.HorizontalAlignmentProperty, new TemplateBindingExtension(Label.HorizontalContentAlignmentProperty));
-            contentPresenterFactory.SetValue(ContentPresenter.VerticalAlignmentProperty, new TemplateBindingExtension(Label.VerticalContentAlignmentProperty));
-            contentPresenterFactory.SetValue(ContentPresenter.MarginProperty, new TemplateBindingExtension(Label.PaddingProperty));
-            borderFactory.AppendChild(contentPresenterFactory);
-            labelTemplate.VisualTree = borderFactory;
-            var labelStyle = new Style(typeof(Label));
-            labelStyle.Setters.Add(new Setter(Label.TemplateProperty, labelTemplate));
-            tab_TitleLabel.Style = labelStyle;
-            Grid.SetRow(tab_TitleLabel, 0);
-            Grid.SetColumn(tab_TitleLabel, 0);
-            tab_Grid.Children.Add(tab_TitleLabel);
-            customTab.Tab_TitleLabel = tab_TitleLabel;
-            tab_TitleLabel.Tag = customTab;
-            var tabTitleTextBlock = new TextBlock {
-                Text = nameString,
-                TextWrapping = TextWrapping.Wrap,
-                MaxWidth = 160,
-                Foreground = Brushes.Black,
-                FontFamily = new FontFamily("Verella Round"),
-                FontWeight = FontWeights.SemiBold,
-                Effect = new System.Windows.Media.Effects.DropShadowEffect {
-                    Color = Colors.Black,
-                    BlurRadius = 2,
-                    ShadowDepth = 0.5,
-                    Opacity = 0.4
-                }
-            };
-            tab_TitleLabel.Content = tabTitleTextBlock;
-            tab_TitleLabel.MouseLeftButtonUp += TabTitleLabel_Click;
-            tab_TitleLabel.MouseEnter += (s, e) => {
-                if (s is Label lbl) {
-                    var anim = new System.Windows.Media.Animation.ColorAnimation {
-                        To = (Color)ColorConverter.ConvertFromString("#FFEFEFEF"),
-                        Duration = new Duration(TimeSpan.FromMilliseconds(200))
-                    };
-                    var brush = lbl.Background as SolidColorBrush;
-                    if (brush == null || brush.IsFrozen || brush == Brushes.Transparent) {
-                        brush = new SolidColorBrush(Colors.Transparent);
-                        lbl.Background = brush;
-                    }
-                    brush.BeginAnimation(SolidColorBrush.ColorProperty, anim);
-                }
-            };
-            tab_TitleLabel.MouseLeave += (s, e) => {
-                if (s is Label lbl && lbl.Tag is CustomTab tab)
-                {
-                    lbl.Background = tab.TabTitleLabelBackground;
-                }
-            };
-
-            // Frame Border
-            var frame_Border = new Border {
-                BorderBrush = Brushes.Gray,
-                BorderThickness = new Thickness(1),
-                Margin = new Thickness(4),
-                Background = Brushes.White
-            };
-            customTab.Frame_Border = frame_Border;
-            frame_Border.Tag = customTab;
-
-            // Frame Grid
-            var frame_Grid = new Grid {
-                Background = Brushes.White
-            };
-            frame_Border.Child = frame_Grid;
-            customTab.Frame_Grid = frame_Grid;
-            frame_Grid.Tag = customTab;
-            frame_Grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            frame_Grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            frame_Grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-
-            // Frame Title Grid
-            var frameTitle_Grid = new Grid {
-                Background = Brushes.White
-            };
-            Grid.SetRow(frameTitle_Grid, 0);
-            frame_Grid.Children.Add(frameTitle_Grid);
-            customTab.FrameTitle_Grid = frameTitle_Grid;
-            frameTitle_Grid.Tag = customTab;
-            frameTitle_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            frameTitle_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            frameTitle_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            frameTitle_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-            // Frame Address Grid
-            var frameAddress_Grid = new Grid();
-            Grid.SetRow(frameAddress_Grid, 1);
-            frame_Grid.Children.Add(frameAddress_Grid);
-            customTab.FrameAddress_Grid = frameAddress_Grid;
-            frameAddress_Grid.Tag = customTab;
-            frameAddress_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            frameAddress_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            frameAddress_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            frameAddress_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-            // Frame Refresh Button
-            var frame_RefreshButton = new Button { Name = "btnRefresh", Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.White, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
-            frame_RefreshButton.ToolTip = "Refresh";
-            var refreshImage = new Image {
-                Source = new BitmapImage(new Uri("pack://application:,,,/Refresh.png")),
-                Stretch = Stretch.Uniform,
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            frame_RefreshButton.Content = refreshImage;
-            Grid.SetColumn(frame_RefreshButton, 0);
-            frameAddress_Grid.Children.Add(frame_RefreshButton);
-            customTab.Frame_RefreshButton = frame_RefreshButton;
-            frame_RefreshButton.Tag = customTab;
-            frame_RefreshButton.Click += (s, e) => {
-                if (s is Button btn && btn.Tag is CustomTab tab && tab.Frame_WebView != null) {
-                    tab.Frame_WebView.Reload();
-                }
-            };
-
-            // Frame Back Button
-            var frame_BackButton = new Button { Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.White, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
-            frame_BackButton.ToolTip = "Back";
-            var backImage = new Image {
-                Source = new BitmapImage(new Uri("pack://application:,,,/Back.png")),
-                Stretch = Stretch.Uniform,
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            frame_BackButton.Content = backImage;
-            Grid.SetColumn(frame_BackButton, 1);
-            frameAddress_Grid.Children.Add(frame_BackButton);
-            customTab.Frame_BackButton = frame_BackButton;
-            frame_BackButton.Tag = customTab;
-            frame_BackButton.Click += FrameBackButton_Click;
-
-            // Frame Url TextBox
-            var frame_UrlTextBox = new TextBox();
-            Grid.SetColumn(frame_UrlTextBox, 2);
-            frameAddress_Grid.Children.Add(frame_UrlTextBox);
-            customTab.Frame_UrlTextBox = frame_UrlTextBox;
-            frame_UrlTextBox.Tag = customTab;
-            frame_UrlTextBox.Text = urlString;
-            frame_UrlTextBox.KeyDown += FrameUrlTextBox_KeyDown;
-            frame_UrlTextBox.PreviewMouseDown += (s, e) => {
-                if (s is TextBox tb && tb.Tag is CustomTab tab) {
-                    if (!tb.IsKeyboardFocusWithin) {
-                        tab.frameUrlTextBoxClickState = 0;
-                        return;
-                    }
-                    tab.frameUrlTextBoxClickState = (tab.frameUrlTextBoxClickState + 1) % 3;
-                    if (tab.frameUrlTextBoxClickState == 0) {
-                        return;
-                    } else if (tab.frameUrlTextBoxClickState == 1) {
-                        int caret = tb.CaretIndex;
-                        string text = tb.Text;
-                        if (string.IsNullOrEmpty(text)) return;
-                        int start = caret;
-                        int end = caret;
-                        while (start > 0 && !char.IsWhiteSpace(text[start - 1]) && text[start - 1] != '.' && text[start - 1] != '/' && text[start - 1] != '?') start--;
-                        while (end < text.Length && !char.IsWhiteSpace(text[end]) && text[end] != '.' && text[end] != '/' && text[end] != '?') end++;
-                        tb.SelectionStart = start;
-                        tb.SelectionLength = end - start;
-                        e.Handled = true;
-                    } else if (tab.frameUrlTextBoxClickState == 2) {
-                        tb.SelectAll();
-                        e.Handled = true;
-                    }
-                }
-            };
-
-            // Frame Toggle Bookmark Button
-            var frame_ToggleBookmarkButton = new Button {
-                Height = 15,
-                Width = 15,
-                Background = Brushes.White,
-                BorderThickness = new Thickness(0),
-                BorderBrush = Brushes.Transparent,
-                ToolTip = "Bookmark"
-            };
-            frame_ToggleBookmarkButton.Content = BookmarkOffImage;
-            Grid.SetColumn(frame_ToggleBookmarkButton, 3);
-            frameAddress_Grid.Children.Add(frame_ToggleBookmarkButton);
-            customTab.Frame_ToggleBookmarkButton = frame_ToggleBookmarkButton;
-            frame_ToggleBookmarkButton.Tag = false; // false = off, true = on
-            frame_ToggleBookmarkButton.Click += (s, e) => {
-                if (s is Button btn) {
-                    bool isOn = (bool)btn.Tag;
-                    btn.Content = isOn ? BookmarkOffImage : BookmarkOnImage;
-                    btn.Tag = !isOn;
-                }
-            };
-
-            // Frame Clone Button
-            var frame_CloneButton = new Button { Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.White, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
-            frame_CloneButton.ToolTip = "Copy Tab";
-            var cloneImage = new Image {
-                Source = new BitmapImage(new Uri("pack://application:,,,/Clone.png")),
-                Stretch = Stretch.Uniform,
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            frame_CloneButton.Content = cloneImage;
-            Grid.SetColumn(frame_CloneButton, 1);
-            frameTitle_Grid.Children.Add(frame_CloneButton);
-            customTab.Frame_CloneButton = frame_CloneButton;
-            frame_CloneButton.Tag = customTab;
-            frame_CloneButton.Click += (s, e) => CloneTab(customTab);
-
-            // Frame Close Button
-            var frame_CloseButton = new Button { Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.White, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
-            frame_CloseButton.ToolTip = "Close";
-            var closeImage = new Image {
-                Source = new BitmapImage(new Uri("pack://application:,,,/Close.png")),
-                Stretch = Stretch.Uniform,
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            frame_CloseButton.Content = closeImage;
-            Grid.SetColumn(frame_CloseButton, 3);
-            frameTitle_Grid.Children.Add(frame_CloseButton);
-            customTab.Frame_CloseButton = frame_CloseButton;
-            frame_CloseButton.Tag = customTab;
-            frame_CloseButton.Click += (s, e) => CloseTab(customTab);
-
-            // Frame Hide Button
-            var frame_HideButton = new Button { Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.White, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
-            frame_HideButton.ToolTip = "Hide";
-            var minimizeImage = new Image {
-                Source = new BitmapImage(new Uri("pack://application:,,,/Minimize.png")),
-                Stretch = Stretch.Uniform,
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-            frame_HideButton.Content = minimizeImage;
-            Grid.SetColumn(frame_HideButton, 2);
-            frameTitle_Grid.Children.Add(frame_HideButton);
-            customTab.Frame_HideButton = frame_HideButton;
-            frame_HideButton.Tag = customTab;
-            frame_HideButton.Click += (s, e) => HideTabFrame(customTab);
-
-            // Frame Title TextBox
-            var frame_TitleTextBox = new TextBox {
-                Foreground = Brushes.Black,
-                FontWeight = FontWeights.SemiBold,
-                Background = Brushes.White,
-                BorderThickness = new Thickness(0),
-                Margin = new Thickness(0, 0, 15, 0)
-            };
-            Grid.SetColumn(frame_TitleTextBox, 0);
-            frameTitle_Grid.Children.Add(frame_TitleTextBox);
-            customTab.Frame_TitleTextBox = frame_TitleTextBox;
-            frame_TitleTextBox.Tag = customTab;
-            frame_TitleTextBox.Text = nameString;
-            frame_TitleTextBox.TextChanged += FrameTitleTextBox_TextChanged;
-
-            // Frame WebView2
-            WebView2 frame_WebView;
-            if (webViewToClone != null)
-            {
-                // Create a new WebView2 and navigate to the same URL as the original
-                frame_WebView = new WebView2();
-                try
-                {
-                    // Use the current URL of the original WebView2 if available
-                    var src = webViewToClone.Source?.ToString();
-                    if (!string.IsNullOrEmpty(src))
-                        frame_WebView.Source = new System.Uri(src);
-                    else
-                        frame_WebView.Source = new System.Uri(urlString.StartsWith("http") ? urlString : $"https://{urlString}");
-                }
-                catch { }
-            }
-            else
-            {
-                frame_WebView = new WebView2();
-                try
-                {
-                    frame_WebView.Source = new System.Uri(urlString.StartsWith("http") ? urlString : $"https://{urlString}");
-                }
-                catch { }
-            }
-            Grid.SetRow(frame_WebView, 2);
-            frame_Grid.Children.Add(frame_WebView);
-            customTab.Frame_WebView = frame_WebView;
-            frame_WebView.Tag = customTab;
-            frame_WebView.NavigationCompleted += FrameWebView_NavigationCompleted;
-            frame_WebView.CoreWebView2InitializationCompleted += FrameWebView_CoreWebView2InitializationCompleted;
-
-            if (urlString == nameString && webViewToClone == null)
-            {
-                _ = UpdateTabTitleFromUrlAsync(customTab, urlString);
-            }
-
-            customTab.displayFrame = true;
-            OrganizeFrames();
-        }
-
-        private void CreateTab(string urlString, string nameString)
-        {
-            CreateTabInternal(urlString, nameString, null);
         }
 
         public void CloneTab(CustomTab customTab)
         {
             if (customTab == null || customTab.Frame_WebView == null) return;
-            CreateTabInternal(customTab.Frame_UrlTextBox?.Text ?? "", customTab.Frame_TitleTextBox?.Text ?? "", customTab.Frame_WebView);
+            TabHelper.CreateTabInternal(this, customTab.Frame_UrlTextBox?.Text ?? "", customTab.Frame_TitleTextBox?.Text ?? "", customTab.Frame_WebView);
         }
 
-        private async void FrameWebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+        internal async void FrameWebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             if (sender is WebView2 webView && webView.Tag is CustomTab customTab)
             {
@@ -648,13 +340,15 @@ namespace BrowserTabManager
                 {
                     string urlText = customTab.Frame_UrlTextBox.Text?.Trim();
                     bool found = BookmarksList.Any(b => string.Equals(b.URL?.Trim(), urlText, StringComparison.OrdinalIgnoreCase));
-                    customTab.Frame_ToggleBookmarkButton.Content = found ? BookmarkOnImage : BookmarkOffImage;
+                    var offImg = GetType().GetMethod("CreateBookmarkOffImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
+                    var onImg = GetType().GetMethod("CreateBookmarkOnImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
+                    customTab.Frame_ToggleBookmarkButton.Content = found ? onImg : offImg;
                     customTab.Frame_ToggleBookmarkButton.Tag = found;
                 }
             }
         }
 
-        private void FrameWebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
+        internal void FrameWebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
             if (sender is WebView2 webView && webView.CoreWebView2 != null)
             {
@@ -670,11 +364,11 @@ namespace BrowserTabManager
             if (!string.IsNullOrEmpty(uri))
             {
                 // Use the link's URL as both urlString and nameString for now
-                CreateTab(uri, uri);
+                TabHelper.CreateTab(this, uri, uri);
             }
         }
 
-        private void FrameBackButton_Click(object sender, RoutedEventArgs e)
+        internal void FrameBackButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is CustomTab customTab)
             {
@@ -686,7 +380,7 @@ namespace BrowserTabManager
             }
         }
 
-        private void TabTitleLabel_Click(object sender, MouseButtonEventArgs e)
+        internal void TabTitleLabel_Click(object sender, MouseButtonEventArgs e)
         {
             if (sender is Label label && label.Tag is CustomTab customTab)
             {
@@ -695,7 +389,7 @@ namespace BrowserTabManager
             }
         }
 
-        private void HideTabFrame(CustomTab customTab)
+        internal void HideTabFrame(CustomTab customTab)
         {
             customTab.displayFrame = false;
             FramesGrid.Children.Remove(customTab.Frame_Border);
@@ -709,7 +403,7 @@ namespace BrowserTabManager
             OrganizeFrames();
         }
 
-        private void CloseTab(CustomTab customTab)
+        internal void CloseTab(CustomTab customTab)
         {
             TabsList.Remove(customTab);
             TabStack.Children.Remove(customTab.Tab_Border);
@@ -727,7 +421,7 @@ namespace BrowserTabManager
             OrganizeFrames();
         }
 
-        private async Task UpdateTabTitleFromUrlAsync(CustomTab tab, string url)
+        internal async Task UpdateTabTitleFromUrlAsync(CustomTab tab, string url)
         {
             var title = await FetchPageTitleAsync(url);
             if (!string.IsNullOrWhiteSpace(title))
@@ -739,7 +433,7 @@ namespace BrowserTabManager
             }
         }
 
-        private void OrganizeFrames()
+        internal void OrganizeFrames()
         {
             // Use only CustomTabs with displayFrame == true
             var frameTabs = TabsList.Where(t => t.displayFrame).ToList();
@@ -775,8 +469,25 @@ namespace BrowserTabManager
             int frameIndex = 0;
             for (int row = 0; row < FramesGrid.RowDefinitions.Count; row++)
             {
+                // if row is even, change row height to star size
+                if (row % 2 == 0)
+                {
+                    FramesGrid.RowDefinitions[row].Height = new GridLength(1, GridUnitType.Star);
+                }
+                //else
+                //{
+                //    FramesGrid.RowDefinitions[row].Height = new GridLength(4); // Splitter row
+                //}
+
+
                 for (int col = 0; col < FramesGrid.ColumnDefinitions.Count; col++)
                 {
+                    // if col is even, change column width to star size
+                    if (col % 2 == 0)
+                    {
+                        FramesGrid.ColumnDefinitions[col].Width = new GridLength(1, GridUnitType.Star);
+                    }
+
                     if (row % 2 == 0 && col % 2 == 0)
                     {
                         // Frame cell
@@ -864,7 +575,7 @@ namespace BrowserTabManager
                     {
                         // Use Google search immediately
                         string searchUrl = $"https://www.google.com/search?q={System.Net.WebUtility.UrlEncode(url)}";
-                        CreateTab(searchUrl, url);
+                        TabHelper.CreateTab(this, searchUrl, url);
                         txtLaunchUrl.Text = string.Empty;
                         return;
                     }
@@ -874,7 +585,7 @@ namespace BrowserTabManager
                     {
                         // Try to create a tab and check if navigation is successful
                         var customTab = new CustomTab();
-                        CreateTab(url, url);
+                        TabHelper.CreateTab(this, url, url);
                         var createdTab = TabsList.LastOrDefault();
                         if (createdTab != null && createdTab.Frame_WebView != null)
                         {
@@ -908,7 +619,7 @@ namespace BrowserTabManager
                         }
                         // Use Google search
                         string searchUrl = $"https://www.google.com/search?q={System.Net.WebUtility.UrlEncode(url)}";
-                        CreateTab(searchUrl, url);
+                        TabHelper.CreateTab(this, searchUrl, url);
                     }
                 }
                 txtLaunchUrl.Text = string.Empty;
@@ -979,7 +690,7 @@ namespace BrowserTabManager
             }
         }
 
-        private async void FrameUrlTextBox_KeyDown(object sender, KeyEventArgs e)
+        internal async void FrameUrlTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter && sender is TextBox textBox && textBox.Tag is CustomTab customTab)
             {
@@ -1030,12 +741,44 @@ namespace BrowserTabManager
             }
         }
 
-        private void FrameTitleTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        internal void FrameTitleTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is TextBox textBox && textBox.Tag is CustomTab customTab && customTab.Tab_TitleLabel != null)
             {
                 if (customTab.Tab_TitleLabel.Content is TextBlock tb) tb.Text = textBox.Text;
             }
+        }
+
+        // Context menu handlers for bookmarks
+        internal void AddBookmarkContext(CustomBookmark bookmark)
+        {
+            // Example: Add a new bookmark below the current one
+            int idx = BookmarksList.IndexOf(bookmark);
+            string newUrl = "https://";
+            string newTitle = "New Bookmark";
+            CreateBookmark(newUrl, newTitle);
+            // Move the new bookmark visually below the current one
+            var newBookmark = BookmarksList.Last();
+            BookmarkStack.Children.Remove(newBookmark.Border);
+            int insertIdx = idx >= 0 ? idx + 1 : BookmarkStack.Children.Count;
+            BookmarkStack.Children.Insert(insertIdx, newBookmark.Border);
+        }
+
+        internal void EditBookmarkContext(CustomBookmark bookmark)
+        {
+            // Example: Prompt for new title and URL
+            var inputDialog = new EditBookmarkDialog(bookmark.TitleLabel.Content?.ToString() ?? "", bookmark.URL);
+            if (inputDialog.ShowDialog() == true)
+            {
+                bookmark.TitleLabel.Content = inputDialog.BookmarkTitle;
+                bookmark.URL = inputDialog.BookmarkUrl;
+            }
+        }
+
+        internal void DeleteBookmarkContext(CustomBookmark bookmark)
+        {
+            BookmarksList.Remove(bookmark);
+            BookmarkStack.Children.Remove(bookmark.Border);
         }
 
         private class BookmarkJsonEntry
@@ -1085,8 +828,8 @@ namespace BrowserTabManager
                     {
                         Tab_TitleLabel.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFDBDBDB"));
                         Tab_TitleLabel.BorderThickness = new Thickness(1, 1, 1, 1);
-                        Tab_TitleLabel.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EFF3FB"));
-                        TabTitleLabelBackground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EFF3FB"));
+                        Tab_TitleLabel.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E2E6EC"));
+                        TabTitleLabelBackground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E2E6EC"));
                     }
                     // Set font weight and color on the TextBlock inside the Label
                     var darkGray = new SolidColorBrush(Color.FromRgb(40, 40, 40)); // almost black

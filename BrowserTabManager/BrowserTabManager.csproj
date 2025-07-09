@@ -28,40 +28,34 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Back.png">
+    <Resource Include="Icons\Back.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="BookmarkOff.png">
+    <Resource Include="Icons\BookmarkOff.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="BookmarkOn.png">
+    <Resource Include="Icons\BookmarkOn.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Clone.png">
+    <Resource Include="Icons\Clone.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Close.png">
+    <Resource Include="Icons\Close.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Minimize.png">
+    <Resource Include="Icons\Minimize.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Minus.png">
+    <Resource Include="Icons\Minus.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="noun-refresh-1977395.png">
+    <Resource Include="Icons\Plus.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="noun-replay-449323.png">
+    <Resource Include="Icons\Refresh.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Plus.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Refresh.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Refresh_icon.svg.png">
+    <Resource Include="Icons\Refresh_icon.svg.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
