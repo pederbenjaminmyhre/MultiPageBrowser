@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:BrowserTabManager"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid x:Name="MasterGrid" Margin="0,0,5,0">
+    <Grid x:Name="MasterGrid" Margin="0,0,0,0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="150" />
             <ColumnDefinition Width="4" />
@@ -29,9 +29,24 @@
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="TextBox">
-                                        <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
-                                            <ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
-                                        </Border>
+                                        <Grid>
+                                            <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                                                <ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
+                                            </Border>
+                                            <ContentControl x:Name="Watermark"
+                                                           IsHitTestVisible="False"
+                                                           Content="Search Bookmarks"
+                                                           Foreground="#888"
+                                                           Margin="16,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Opacity="0.8"
+                                                           Visibility="Collapsed"/>
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="Text" Value="">
+                                                <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
@@ -71,9 +86,24 @@
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="TextBox">
-                                            <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
-                                                <ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
-                                            </Border>
+                                            <Grid>
+                                                <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                                                    <ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
+                                                </Border>
+                                                <ContentControl x:Name="Watermark"
+                                                               IsHitTestVisible="False"
+                                                               Content="Enter an internet address or search term"
+                                                               Foreground="#888"
+                                                               Margin="16,0,0,0"
+                                                               VerticalAlignment="Center"
+                                                               Opacity="0.8"
+                                                               Visibility="Collapsed"/>
+                                            </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="Text" Value="">
+                                                    <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Setter.Value>
                                 </Setter>
@@ -122,9 +152,24 @@
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="TextBox">
-                                        <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
-                                            <ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
-                                        </Border>
+                                        <Grid>
+                                            <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                                                <ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
+                                            </Border>
+                                            <ContentControl x:Name="Watermark"
+                                                           IsHitTestVisible="False"
+                                                           Content="Search Open Tabs"
+                                                           Foreground="#888"
+                                                           Margin="16,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           Opacity="0.8"
+                                                           Visibility="Collapsed"/>
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="Text" Value="">
+                                                <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>

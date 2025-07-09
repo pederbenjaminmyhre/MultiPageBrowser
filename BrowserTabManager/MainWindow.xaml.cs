@@ -752,16 +752,19 @@ namespace BrowserTabManager
         // Context menu handlers for bookmarks
         internal void AddBookmarkContext(CustomBookmark bookmark)
         {
-            // Example: Add a new bookmark below the current one
-            int idx = BookmarksList.IndexOf(bookmark);
-            string newUrl = "https://";
-            string newTitle = "New Bookmark";
-            CreateBookmark(newUrl, newTitle);
-            // Move the new bookmark visually below the current one
-            var newBookmark = BookmarksList.Last();
-            BookmarkStack.Children.Remove(newBookmark.Border);
-            int insertIdx = idx >= 0 ? idx + 1 : BookmarkStack.Children.Count;
-            BookmarkStack.Children.Insert(insertIdx, newBookmark.Border);
+            // Show AddBookmarkDialog
+            var dialog = new AddBookmarkDialog { Owner = this };
+            if (dialog.ShowDialog() == true)
+            {
+                // Use dialog input to create the new bookmark
+                CreateBookmark(dialog.BookmarkUrl, dialog.BookmarkTitle);
+                // Move the new bookmark visually below the current one
+                int idx = BookmarksList.IndexOf(bookmark);
+                var newBookmark = BookmarksList.Last();
+                BookmarkStack.Children.Remove(newBookmark.Border);
+                int insertIdx = idx >= 0 ? idx + 1 : BookmarkStack.Children.Count;
+                BookmarkStack.Children.Insert(insertIdx, newBookmark.Border);
+            }
         }
 
         internal void EditBookmarkContext(CustomBookmark bookmark)
@@ -777,8 +780,13 @@ namespace BrowserTabManager
 
         internal void DeleteBookmarkContext(CustomBookmark bookmark)
         {
-            BookmarksList.Remove(bookmark);
-            BookmarkStack.Children.Remove(bookmark.Border);
+            var dialog = new DeleteBookmarkDialog(bookmark.TitleLabel.Content?.ToString() ?? "");
+            dialog.Owner = this;
+            if (dialog.ShowDialog() == true && dialog.IsConfirmed)
+            {
+                BookmarksList.Remove(bookmark);
+                BookmarkStack.Children.Remove(bookmark.Border);
+            }
         }
 
         private class BookmarkJsonEntry
@@ -797,73 +805,5 @@ namespace BrowserTabManager
 
     }
 
-
-    public class CustomBookmark
-    {
-        public Border Border { get; set; }
-        public Grid Grid { get; set; }
-        public Label TitleLabel { get; set; } // Changed from TextBox to Label
-        public string URL { get; set; }
-    }
-
-    public class CustomTab
-    {
-        private bool _displayFrame = true;
-        public bool displayFrame
-        {
-            get => _displayFrame;
-            set
-            {
-                _displayFrame = value;
-                if (Tab_TitleLabel != null)
-                {
-                    if (value)
-                    {
-                        Tab_TitleLabel.BorderBrush = Brushes.Gray;
-                        Tab_TitleLabel.BorderThickness = new Thickness(0, 1, 1, 1);
-                        Tab_TitleLabel.Background = Brushes.White;
-                        TabTitleLabelBackground = Brushes.White;
-                    }
-                    else
-                    {
-                        Tab_TitleLabel.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFDBDBDB"));
-                        Tab_TitleLabel.BorderThickness = new Thickness(1, 1, 1, 1);
-                        Tab_TitleLabel.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E2E6EC"));
-                        TabTitleLabelBackground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E2E6EC"));
-                    }
-                    // Set font weight and color on the TextBlock inside the Label
-                    var darkGray = new SolidColorBrush(Color.FromRgb(40, 40, 40)); // almost black
-                    if (Tab_TitleLabel.Content is TextBlock tb)
-                    {
-                        tb.FontWeight = value ? FontWeights.SemiBold : FontWeights.Normal;
-                        tb.Foreground = value ? Brushes.Black : darkGray;
-                    }
-                    else
-                    {
-                        Tab_TitleLabel.FontWeight = value ? FontWeights.SemiBold : FontWeights.Normal;
-                        Tab_TitleLabel.Foreground = value ? Brushes.Black : darkGray;
-                    }
-                }
-            }
-        }
-        public Border Tab_Border { get; set; }
-        public Grid Tab_Grid { get; set; }
-        public Label Tab_TitleLabel { get; set; }
-        public Border Frame_Border { get; set; }
-        public Grid Frame_Grid { get; set; }
-        public Grid FrameTitle_Grid { get; set; }
-        public Grid FrameAddress_Grid { get; set; }
-        public TextBox Frame_TitleTextBox { get; set; }
-        public TextBox Frame_UrlTextBox { get; set; }
-        public Button Frame_CloseButton { get; set; }
-        public Button Frame_RefreshButton { get; set; }
-        public Button Frame_CloneButton { get; set; }
-        public Button Frame_HideButton { get; set; }
-        public Button Frame_BackButton { get; set; }
-        public Button Frame_ToggleBookmarkButton { get; set; }
-        public WebView2 Frame_WebView { get; set; }
-        public int frameUrlTextBoxClickState { get; set; } = 0; // 0: cursor, 1: word, 2: all
-        public Brush TabTitleLabelBackground { get; set; }
-
-    }
+    // CustomBookmark and CustomTab classes have been moved to their own files.
 }
