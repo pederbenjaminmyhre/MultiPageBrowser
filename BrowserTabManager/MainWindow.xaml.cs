@@ -27,6 +27,9 @@ namespace BrowserTabManager
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Window _newTabDialog;
+        private TextBox _dialogUrlBox;
+        
         internal List<CustomBookmark> BookmarksList = new List<CustomBookmark>();
         internal List<CustomTab> TabsList = new List<CustomTab>();
 
@@ -104,6 +107,27 @@ namespace BrowserTabManager
             boolShowTabList = !boolShowTabList;
         }
 
+        private void NewTabButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new NewTabDialog(txtLaunchUrl);
+            _newTabDialog = dialog;
+            _dialogUrlBox = dialog.UrlBox;
+            dialog.Owner = this;
+            dialog.UrlBox.KeyDown += TxtLaunchUrl_KeyDown_Dialog;
+            dialog.ShowDialog();
+        }
+
+        private async void TxtLaunchUrl_KeyDown_Dialog(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                txtLaunchUrl.Text = _dialogUrlBox.Text;
+                await Task.Yield();
+                TxtLaunchUrl_KeyDown(txtLaunchUrl, e);
+                _newTabDialog?.Close();
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -113,6 +137,7 @@ namespace BrowserTabManager
 
             ShowHideBookmarksButton.Click += ShowHideBookmarksButton_Click;
             ShowHideTabListButton.Click += ShowHideTabListButton_Click;
+            NewTabButton.Click += NewTabButton_Click;
 
             bool loadedFromFile = false;
             try
