@@ -17,6 +17,7 @@ using Microsoft.Web.WebView2.Core;
 using System.IO;
 using System.Text.Json;
 using BrowserTabManager;
+using System.Windows.Media.Animation;
 
 namespace BrowserTabManager
 {
@@ -64,12 +65,54 @@ namespace BrowserTabManager
 
         //private TextBox txtLaunchUrl => (TextBox)this.FindName("txtLaunchUrl");
 
+        // Property to control showing/hiding bookmarks panel
+        private bool _boolShowBookmarks = true;
+        public bool boolShowBookmarks
+        {
+            get => _boolShowBookmarks;
+            set
+            {
+                _boolShowBookmarks = value;
+                if (LowerMasterGrid?.ColumnDefinitions.Count > 0)
+                {
+                    LowerMasterGrid.ColumnDefinitions[0].Width = value ? new GridLength(150) : new GridLength(0);
+                }
+            }
+        }
+
+        private bool _boolShowTabList = true;
+        public bool boolShowTabList
+        {
+            get => _boolShowTabList;
+            set
+            {
+                _boolShowTabList = value;
+                if (LowerMasterGrid?.ColumnDefinitions.Count > 0)
+                {
+                    LowerMasterGrid.ColumnDefinitions[4].Width = value ? new GridLength(150) : new GridLength(0);
+                }
+            }
+        }
+
+        private void ShowHideBookmarksButton_Click(object sender, RoutedEventArgs e)
+        {
+            boolShowBookmarks = !boolShowBookmarks;
+        }
+
+        private void ShowHideTabListButton_Click(object sender, RoutedEventArgs e)
+        {
+            boolShowTabList = !boolShowTabList;
+        }
+
         public MainWindow()
         {
             InitializeComponent();
             txtSearchBookmarks.TextChanged += TxtSearchBookmarks_TextChanged;
             txtLaunchUrl.KeyDown += TxtLaunchUrl_KeyDown;
             txtSearchTabs.TextChanged += TxtSearchTabs_TextChanged;
+
+            ShowHideBookmarksButton.Click += ShowHideBookmarksButton_Click;
+            ShowHideTabListButton.Click += ShowHideTabListButton_Click;
 
             bool loadedFromFile = false;
             try
@@ -649,12 +692,12 @@ namespace BrowserTabManager
         protected override void OnClosing(CancelEventArgs e)
         {
             // Save bookmarks to JSON
-            var bookmarksToSave = BookmarksList.Select(b => new { Title = b.TitleLabel.Content?.ToString() ?? string.Empty, URL = b.URL }).ToList();
+            var bookmarksToSave = BookmarksList.Select(b => new { Title = b.TitleLabel.Content?.ToString() ?? "", URL = b.URL }).ToList();
             var json = JsonSerializer.Serialize(bookmarksToSave, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText("bookmarks.json", json);
 
             // Save open tabs to JSON
-            var openTabsToSave = TabsList.Select(t => new { Title = t.Frame_TitleTextBox?.Text ?? string.Empty, URL = t.Frame_UrlTextBox?.Text ?? string.Empty, DisplayFrame = t.displayFrame }).ToList();
+            var openTabsToSave = TabsList.Select(t => new { Title = t.Frame_TitleTextBox?.Text ?? "", URL = t.Frame_UrlTextBox?.Text ?? "", DisplayFrame = t.displayFrame }).ToList();
             var openTabsJson = JsonSerializer.Serialize(openTabsToSave, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText("opentabs.json", openTabsJson);
 
