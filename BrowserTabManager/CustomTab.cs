@@ -18,14 +18,14 @@ namespace BrowserTabManager
                     if (value)
                     {
                         Tab_TitleLabel.BorderBrush = Brushes.Gray;
-                        Tab_TitleLabel.BorderThickness = new System.Windows.Thickness(0, 1, 1, 1);
+                        Tab_TitleLabel.BorderThickness = new System.Windows.Thickness(1, 0, 0, 0);
                         Tab_TitleLabel.Background = Brushes.White;
                         TabTitleLabelBackground = Brushes.White;
                     }
                     else
                     {
-                        Tab_TitleLabel.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#FFDBDBDB"));
-                        Tab_TitleLabel.BorderThickness = new System.Windows.Thickness(1, 1, 1, 1);
+                        Tab_TitleLabel.BorderBrush = Brushes.Gray;
+                        Tab_TitleLabel.BorderThickness = new System.Windows.Thickness(1, 0, 0, 0);
                         Tab_TitleLabel.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#E2E6EC"));
                         TabTitleLabelBackground = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#E2E6EC"));
                     }

@@ -80,6 +80,8 @@ namespace BrowserTabManager
                 };
                 tab_TitleLabel.Content = tabTitleTextBlock;
                 tab_TitleLabel.MouseLeftButtonUp += mainWindow.TabTitleLabel_Click;
+                // Attach context menu for right-click
+                TabContextMenuHelper.AttachContextMenu(mainWindow, customTab);
                 tab_TitleLabel.MouseEnter += (s, e) => {
                     if (s is Label lbl) {
                         var anim = new System.Windows.Media.Animation.ColorAnimation {
@@ -117,8 +119,8 @@ namespace BrowserTabManager
                 // Frame Border
                 var frame_Border = new Border {
                     BorderBrush = new SolidColorBrush(Color.FromRgb(176, 176, 176)),
-                    BorderThickness = new Thickness(1),
-                    Margin = new Thickness(4),
+                    BorderThickness = new Thickness(0),
+                    Margin = new Thickness(1),
                     Background = (Brush)new BrushConverter().ConvertFromString("#E2E6EC"),
                     CornerRadius = new CornerRadius(3),
                     Effect = new System.Windows.Media.Effects.DropShadowEffect {

@@ -201,10 +201,9 @@ namespace BrowserTabManager
             return null;
         }
 
-        private void CreateBookmark(string urlString, string nameString)
+        internal void CreateBookmark(string urlString, string nameString)
         {
             // Uncollapse the BookmarkScroll to make bookmarks visible
-
             BookmarkScroll.Visibility = Visibility.Visible;
 
             // Create CustomBookmark
