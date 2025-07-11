@@ -11,7 +11,7 @@ namespace BrowserTabManager
 
             // Launch menu item
             var launchMenuItem = new MenuItem { Header = "Launch" };
-            launchMenuItem.Click += (s, e) => TabHelper.CreateTab(mainWindow, customBookmark.URL, customBookmark.TitleLabel.Content?.ToString() ?? string.Empty);
+            launchMenuItem.Click += (s, e) => mainWindow.tabHelper.CreateTab(customBookmark.URL, customBookmark.TitleLabel.Content?.ToString() ?? string.Empty);
             contextMenu.Items.Add(launchMenuItem);
 
             // Launch in New Screen menu item
@@ -22,7 +22,7 @@ namespace BrowserTabManager
                     tab.displayFrame = false;
                 }
                 mainWindow.OrganizeFrames();
-                TabHelper.CreateTab(mainWindow, customBookmark.URL, customBookmark.TitleLabel.Content?.ToString() ?? string.Empty);
+                mainWindow.tabHelper.CreateTab(customBookmark.URL, customBookmark.TitleLabel.Content?.ToString() ?? string.Empty);
             };
             contextMenu.Items.Add(launchNewScreenMenuItem);
 

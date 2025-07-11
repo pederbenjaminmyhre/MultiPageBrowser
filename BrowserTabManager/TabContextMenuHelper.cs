@@ -75,7 +75,7 @@ namespace BrowserTabManager
             };
             contextMenu.Items.Add(bookmarkMenuItem);
 
-            customTab.Tab_TitleLabel.ContextMenu = contextMenu;
+            customTab.Tab_Border.ContextMenu = contextMenu;
         }
     }
 }

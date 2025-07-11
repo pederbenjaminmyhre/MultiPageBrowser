@@ -5,17 +5,24 @@ using System.Windows;
 using System.Linq;
 using System.Diagnostics;
 using System.Windows.Media.Imaging;
+using System.ComponentModel;
 
 namespace BrowserTabManager
 {
-    public static class TabHelper
+    public class TabHelper
     {
-        public static void CreateTab(MainWindow mainWindow, string urlString, string nameString)
+        private MainWindow mainWindow;
+        public TabHelper(MainWindow mainWindow)
         {
-            CreateTabInternal(mainWindow, urlString, nameString, null);
+            this.mainWindow = mainWindow;
         }
 
-        public static void CreateTabInternal(MainWindow mainWindow, string urlString, string nameString, WebView2 webViewToClone = null)
+        public void CreateTab(string urlString, string nameString)
+        {
+            CreateTabInternal(urlString, nameString, null);
+        }
+
+        public void CreateTabInternal(string urlString, string nameString, WebView2 webViewToClone = null)
         {
             try
             {
@@ -132,6 +139,12 @@ namespace BrowserTabManager
                 };
                 customTab.Frame_Border = frame_Border;
                 frame_Border.Tag = customTab;
+                frame_Border.PreviewMouseDown += (s, e) => {
+                    if (s is Border border && border.Tag is CustomTab tab)
+                    {
+                        mainWindow.CustomTabInFocus = tab;
+                    }
+                };
 
                 // Frame Grid
                 var frame_Grid = new Grid {
@@ -146,7 +159,7 @@ namespace BrowserTabManager
 
                 // Frame Title Grid
                 var frameTitle_Grid = new Grid {
-                    Background = (Brush)new BrushConverter().ConvertFromString("#E2E6EC")
+                    Background = Brushes.Transparent
                 };
                 Grid.SetRow(frameTitle_Grid, 0);
                 frame_Grid.Children.Add(frameTitle_Grid);
@@ -174,7 +187,7 @@ namespace BrowserTabManager
                 frameAddress_Grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
                 // Frame Refresh Button
-                var frame_RefreshButton = new Button { Name = "btnRefresh", Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = (Brush)new BrushConverter().ConvertFromString("#E2E6EC"), BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
+                var frame_RefreshButton = new Button { Name = "btnRefresh", Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.Transparent, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
                 frame_RefreshButton.ToolTip = "Refresh";
                 var refreshImage = new Image {
                     Source = new BitmapImage(new System.Uri("pack://application:,,,/Icons/Refresh.png")),
@@ -194,7 +207,7 @@ namespace BrowserTabManager
                 };
 
                 // Frame Back Button
-                var frame_BackButton = new Button { Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = (Brush)new BrushConverter().ConvertFromString("#E2E6EC"), BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
+                var frame_BackButton = new Button { Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = Brushes.Transparent, BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
                 frame_BackButton.ToolTip = "Back";
                 var backImage = new Image {
                     Source = new BitmapImage(new System.Uri("pack://application:,,,/Icons/Back.png")),
@@ -334,7 +347,7 @@ namespace BrowserTabManager
                     FontWeight = FontWeights.SemiBold,
                     BorderThickness = new Thickness(0),
                     Margin = new Thickness(0, 0, 15, 0),
-                    Background = (Brush)new BrushConverter().ConvertFromString("#E2E6EC")
+                    Background = Brushes.Transparent
                 };
                 Grid.SetColumn(frame_TitleTextBox, 0);
                 frameTitle_Grid.Children.Add(frame_TitleTextBox);
@@ -380,6 +393,10 @@ namespace BrowserTabManager
                 {
                     _ = mainWindow.UpdateTabTitleFromUrlAsync(customTab, urlString);
                 }
+
+                //frame_WebView.GotFocus += (s, e) => {
+                //    mainWindow.CustomTabInFocus = customTab;
+                //};
 
                 customTab.displayFrame = true;
                 mainWindow.OrganizeFrames();

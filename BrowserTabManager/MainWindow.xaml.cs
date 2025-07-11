@@ -131,7 +131,7 @@ namespace BrowserTabManager
         }
 
         // Launch a new tab from a URL string (refactored from TxtLaunchUrl_KeyDown)
-        private async void LaunchTabFromUrl(string url)
+        private void LaunchTabFromUrl(string url)
         {
             if (string.IsNullOrWhiteSpace(url)) return;
             // Simple URL validation: if it contains spaces or doesn't look like a domain, go directly to Google
@@ -143,47 +143,11 @@ namespace BrowserTabManager
             {
                 // Use Google search immediately
                 string searchUrl = $"https://www.google.com/search?q={System.Net.WebUtility.UrlEncode(url)}";
-                TabHelper.CreateTab(this, searchUrl, url);
+                tabHelper.CreateTab(searchUrl, url);
                 return;
             }
 
-            bool loaded = false;
-            try
-            {
-                TabHelper.CreateTab(this, url, url);
-                var createdTab = TabsList.LastOrDefault();
-                if (createdTab != null && createdTab.Frame_WebView != null)
-                {
-                    var webView = createdTab.Frame_WebView;
-                    var tcs = new TaskCompletionSource<bool>();
-                    void handler(object s, CoreWebView2NavigationCompletedEventArgs args)
-                    {
-                        tcs.TrySetResult(args.IsSuccess);
-                        webView.NavigationCompleted -= handler;
-                    }
-                    webView.NavigationCompleted += handler;
-                    try
-                    {
-                        webView.Source = new System.Uri(url.StartsWith("http") ? url : $"https://{url}");
-                    }
-                    catch { tcs.TrySetResult(false); }
-                    loaded = await tcs.Task;
-                }
-            }
-            catch { loaded = false; }
-
-            if (!loaded)
-            {
-                // Remove the failed tab if it was added
-                var failedTab = TabsList.LastOrDefault();
-                if (failedTab != null && failedTab.Frame_UrlTextBox?.Text == url)
-                {
-                    CloseTab(failedTab);
-                }
-                // Use Google search
-                string searchUrl = $"https://www.google.com/search?q={System.Net.WebUtility.UrlEncode(url)}";
-                TabHelper.CreateTab(this, searchUrl, url);
-            }
+            tabHelper.CreateTab(url, url);
         }
 
         private void TxtLaunchUrl_KeyDown(object sender, KeyEventArgs e)
@@ -195,9 +159,78 @@ namespace BrowserTabManager
             }
         }
 
+        public TabHelper tabHelper;
+
+        private CustomTab _customTabInFocus;
+        public CustomTab CustomTabInFocus
+        {
+            get => _customTabInFocus;
+            set
+            {
+                // Reset previous tab's backgrounds if not null
+                if (_customTabInFocus != null)
+                {
+                    var resetBrush = (Brush)new BrushConverter().ConvertFromString("#E2E6EC");
+                    if (_customTabInFocus.Frame_Border != null)
+                        _customTabInFocus.Frame_Border.Background = resetBrush;
+                    if (_customTabInFocus.Frame_Grid != null)
+                        _customTabInFocus.Frame_Grid.Background = resetBrush;
+                    if (_customTabInFocus.FrameTitle_Grid != null)
+                        _customTabInFocus.FrameTitle_Grid.Background = resetBrush;
+                    if (_customTabInFocus.FrameAddress_Grid != null)
+                        _customTabInFocus.FrameAddress_Grid.Background = resetBrush;
+                    if (_customTabInFocus.Frame_TitleTextBox != null)
+                        _customTabInFocus.Frame_TitleTextBox.Background = resetBrush;
+                    if (_customTabInFocus.Frame_CloseButton != null)
+                        _customTabInFocus.Frame_CloseButton.Background = resetBrush;
+                    if (_customTabInFocus.Frame_RefreshButton != null)
+                        _customTabInFocus.Frame_RefreshButton.Background = resetBrush;
+                    if (_customTabInFocus.Frame_CloneButton != null)
+                        _customTabInFocus.Frame_CloneButton.Background = resetBrush;
+                    if (_customTabInFocus.Frame_HideButton != null)
+                        _customTabInFocus.Frame_HideButton.Background = resetBrush;
+                    if (_customTabInFocus.Frame_BackButton != null)
+                        _customTabInFocus.Frame_BackButton.Background = resetBrush;
+                    if (_customTabInFocus.Frame_ToggleBookmarkButton != null)
+                        _customTabInFocus.Frame_ToggleBookmarkButton.Background = resetBrush;
+                }
+
+                _customTabInFocus = value;
+
+                // Highlight new tab's backgrounds if not null
+                if (_customTabInFocus != null)
+                {
+                    var highlightBrush = (Brush)new BrushConverter().ConvertFromString("#fdfd96");
+                    if (_customTabInFocus.Frame_Border != null)
+                        _customTabInFocus.Frame_Border.Background = highlightBrush;
+                    if (_customTabInFocus.Frame_Grid != null)
+                        _customTabInFocus.Frame_Grid.Background = highlightBrush;
+                    if (_customTabInFocus.FrameTitle_Grid != null)
+                        _customTabInFocus.FrameTitle_Grid.Background = highlightBrush;
+                    if (_customTabInFocus.FrameAddress_Grid != null)
+                        _customTabInFocus.FrameAddress_Grid.Background = highlightBrush;
+                    if (_customTabInFocus.Frame_TitleTextBox != null)
+                        _customTabInFocus.Frame_TitleTextBox.Background = highlightBrush;
+                    if (_customTabInFocus.Frame_CloseButton != null)
+                        _customTabInFocus.Frame_CloseButton.Background = highlightBrush;
+                    if (_customTabInFocus.Frame_RefreshButton != null)
+                        _customTabInFocus.Frame_RefreshButton.Background = highlightBrush;
+                    if (_customTabInFocus.Frame_CloneButton != null)
+                        _customTabInFocus.Frame_CloneButton.Background = highlightBrush;
+                    if (_customTabInFocus.Frame_HideButton != null)
+                        _customTabInFocus.Frame_HideButton.Background = highlightBrush;
+                    if (_customTabInFocus.Frame_BackButton != null)
+                        _customTabInFocus.Frame_BackButton.Background = highlightBrush;
+                    if (_customTabInFocus.Frame_ToggleBookmarkButton != null)
+                        _customTabInFocus.Frame_ToggleBookmarkButton.Background = highlightBrush;
+                }
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
+            tabHelper = new TabHelper(this);
             txtSearchBookmarks.TextChanged += TxtSearchBookmarks_TextChanged;
             txtSearchTabs.TextChanged += TxtSearchTabs_TextChanged;
 
@@ -279,8 +312,7 @@ namespace BrowserTabManager
                     {
                         foreach (var entry in tabs)
                         {
-                            var tab = new CustomTab();
-                            TabHelper.CreateTab(this, entry.URL, entry.Title);
+                            tabHelper.CreateTab(entry.URL, entry.Title);
                             // Set displayFrame after tab is created
                             var createdTab = TabsList.LastOrDefault();
                             if (createdTab != null)
@@ -438,14 +470,14 @@ namespace BrowserTabManager
         {
             if (sender is Label label && label.Tag is CustomBookmark customBookmark)
             {
-                TabHelper.CreateTab(this, customBookmark.URL, label.Content?.ToString() ?? string.Empty);
+                tabHelper.CreateTab(customBookmark.URL, label.Content?.ToString() ?? string.Empty);
             }
         }
 
         public void CloneTab(CustomTab customTab)
         {
             if (customTab == null || customTab.Frame_WebView == null) return;
-            TabHelper.CreateTabInternal(this, customTab.Frame_UrlTextBox?.Text ?? "", customTab.Frame_TitleTextBox?.Text ?? "", customTab.Frame_WebView);
+            tabHelper.CreateTabInternal(customTab.Frame_UrlTextBox?.Text ?? "", customTab.Frame_TitleTextBox?.Text ?? "", customTab.Frame_WebView);
         }
 
         internal async void FrameWebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
@@ -501,7 +533,7 @@ namespace BrowserTabManager
             if (!string.IsNullOrEmpty(uri))
             {
                 // Use the link's URL as both urlString and nameString for now
-                TabHelper.CreateTab(this, uri, uri);
+                tabHelper.CreateTab(uri, uri);
             }
         }
 
@@ -871,8 +903,6 @@ namespace BrowserTabManager
             public string URL { get; set; }
             public bool DisplayFrame { get; set; } = true;
         }
-
-
     }
 
     // CustomBookmark and CustomTab classes have been moved to their own files.
