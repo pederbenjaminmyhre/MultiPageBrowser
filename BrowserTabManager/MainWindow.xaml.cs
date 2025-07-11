@@ -27,8 +27,9 @@ namespace BrowserTabManager
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Window _newTabDialog;
-        private TextBox _dialogUrlBox;
+        // Remove dialog fields, not needed anymore
+        // private Window _newTabDialog;
+        // private TextBox _dialogUrlBox;
         
         internal List<CustomBookmark> BookmarksList = new List<CustomBookmark>();
         internal List<CustomTab> TabsList = new List<CustomTab>();
@@ -76,9 +77,9 @@ namespace BrowserTabManager
             set
             {
                 _boolShowBookmarks = value;
-                if (LowerMasterGrid?.ColumnDefinitions.Count > 0)
+                if (this.FindName("CenterMasterGrid") is Grid CenterMasterGrid && CenterMasterGrid?.ColumnDefinitions.Count > 0)
                 {
-                    LowerMasterGrid.ColumnDefinitions[0].Width = value ? new GridLength(150) : new GridLength(0);
+                    CenterMasterGrid.ColumnDefinitions[0].Width = value ? new GridLength(150) : new GridLength(0);
                 }
             }
         }
@@ -90,9 +91,9 @@ namespace BrowserTabManager
             set
             {
                 _boolShowTabList = value;
-                if (LowerMasterGrid?.ColumnDefinitions.Count > 0)
+                if (this.FindName("CenterMasterGrid") is Grid CenterMasterGrid && CenterMasterGrid?.ColumnDefinitions.Count > 0)
                 {
-                    LowerMasterGrid.ColumnDefinitions[4].Width = value ? new GridLength(150) : new GridLength(0);
+                    CenterMasterGrid.ColumnDefinitions[4].Width = value ? new GridLength(150) : new GridLength(0);
                 }
             }
         }
@@ -109,22 +110,71 @@ namespace BrowserTabManager
 
         private void NewTabButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new NewTabDialog(txtLaunchUrl);
-            _newTabDialog = dialog;
-            _dialogUrlBox = dialog.UrlBox;
-            dialog.Owner = this;
-            dialog.UrlBox.KeyDown += TxtLaunchUrl_KeyDown_Dialog;
-            dialog.ShowDialog();
+                LaunchTabFromUrl(txtLaunchUrl.Text.Trim());
         }
 
-        private async void TxtLaunchUrl_KeyDown_Dialog(object sender, KeyEventArgs e)
+        // Launch a new tab from a URL string (refactored from TxtLaunchUrl_KeyDown)
+        private async void LaunchTabFromUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return;
+            // Simple URL validation: if it contains spaces or doesn't look like a domain, go directly to Google
+            bool isLikelyUrl = !url.Contains(' ') &&
+                (url.Contains('.') || url.StartsWith("http://") || url.StartsWith("https://")) &&
+                !url.Any(c => "<>\"'{}|\\^`".Contains(c));
+
+            if (!isLikelyUrl)
+            {
+                // Use Google search immediately
+                string searchUrl = $"https://www.google.com/search?q={System.Net.WebUtility.UrlEncode(url)}";
+                TabHelper.CreateTab(this, searchUrl, url);
+                return;
+            }
+
+            bool loaded = false;
+            try
+            {
+                TabHelper.CreateTab(this, url, url);
+                var createdTab = TabsList.LastOrDefault();
+                if (createdTab != null && createdTab.Frame_WebView != null)
+                {
+                    var webView = createdTab.Frame_WebView;
+                    var tcs = new TaskCompletionSource<bool>();
+                    void handler(object s, CoreWebView2NavigationCompletedEventArgs args)
+                    {
+                        tcs.TrySetResult(args.IsSuccess);
+                        webView.NavigationCompleted -= handler;
+                    }
+                    webView.NavigationCompleted += handler;
+                    try
+                    {
+                        webView.Source = new System.Uri(url.StartsWith("http") ? url : $"https://{url}");
+                    }
+                    catch { tcs.TrySetResult(false); }
+                    loaded = await tcs.Task;
+                }
+            }
+            catch { loaded = false; }
+
+            if (!loaded)
+            {
+                // Remove the failed tab if it was added
+                var failedTab = TabsList.LastOrDefault();
+                if (failedTab != null && failedTab.Frame_UrlTextBox?.Text == url)
+                {
+                    CloseTab(failedTab);
+                }
+                // Use Google search
+                string searchUrl = $"https://www.google.com/search?q={System.Net.WebUtility.UrlEncode(url)}";
+                TabHelper.CreateTab(this, searchUrl, url);
+            }
+        }
+
+        private void TxtLaunchUrl_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                txtLaunchUrl.Text = _dialogUrlBox.Text;
-                await Task.Yield();
-                TxtLaunchUrl_KeyDown(txtLaunchUrl, e);
-                _newTabDialog?.Close();
+                LaunchTabFromUrl(txtLaunchUrl.Text.Trim());
+                e.Handled = true;
             }
         }
 
@@ -132,12 +182,12 @@ namespace BrowserTabManager
         {
             InitializeComponent();
             txtSearchBookmarks.TextChanged += TxtSearchBookmarks_TextChanged;
-            txtLaunchUrl.KeyDown += TxtLaunchUrl_KeyDown;
             txtSearchTabs.TextChanged += TxtSearchTabs_TextChanged;
 
             ShowHideBookmarksButton.Click += ShowHideBookmarksButton_Click;
             ShowHideTabListButton.Click += ShowHideTabListButton_Click;
             NewTabButton.Click += NewTabButton_Click;
+            txtLaunchUrl.KeyDown += new KeyEventHandler(TxtLaunchUrl_KeyDown);
 
             bool loadedFromFile = false;
             try
@@ -623,73 +673,6 @@ namespace BrowserTabManager
                     }
                     // else (row % 2 == 1 && col % 2 == 1): leave empty
                 }
-            }
-        }
-
-        private async void TxtLaunchUrl_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                string url = txtLaunchUrl.Text.Trim();
-                if (!string.IsNullOrEmpty(url))
-                {
-                    // Simple URL validation: if it contains spaces or doesn't look like a domain, go directly to Google
-                    bool isLikelyUrl = !url.Contains(' ') &&
-                        (url.Contains('.') || url.StartsWith("http://") || url.StartsWith("https://")) &&
-                        !url.Any(c => "<>\"'{}|\\^`".Contains(c));
-
-                    if (!isLikelyUrl)
-                    {
-                        // Use Google search immediately
-                        string searchUrl = $"https://www.google.com/search?q={System.Net.WebUtility.UrlEncode(url)}";
-                        TabHelper.CreateTab(this, searchUrl, url);
-                        txtLaunchUrl.Text = string.Empty;
-                        return;
-                    }
-
-                    bool loaded = false;
-                    try
-                    {
-                        // Try to create a tab and check if navigation is successful
-                        var customTab = new CustomTab();
-                        TabHelper.CreateTab(this, url, url);
-                        var createdTab = TabsList.LastOrDefault();
-                        if (createdTab != null && createdTab.Frame_WebView != null)
-                        {
-                            var webView = createdTab.Frame_WebView;
-                            // Wait for navigation to complete or fail
-                            var tcs = new TaskCompletionSource<bool>();
-                            void handler(object s, CoreWebView2NavigationCompletedEventArgs args)
-                            {
-                                tcs.TrySetResult(args.IsSuccess);
-                                webView.NavigationCompleted -= handler;
-                            }
-                            webView.NavigationCompleted += handler;
-                            // Try to navigate
-                            try
-                            {
-                                webView.Source = new System.Uri(url.StartsWith("http") ? url : $"https://{url}");
-                            }
-                            catch { tcs.TrySetResult(false); }
-                            loaded = await tcs.Task;
-                        }
-                    }
-                    catch { loaded = false; }
-
-                    if (!loaded)
-                    {
-                        // Remove the failed tab if it was added
-                        var failedTab = TabsList.LastOrDefault();
-                        if (failedTab != null && failedTab.Frame_UrlTextBox?.Text == url)
-                        {
-                            CloseTab(failedTab);
-                        }
-                        // Use Google search
-                        string searchUrl = $"https://www.google.com/search?q={System.Net.WebUtility.UrlEncode(url)}";
-                        TabHelper.CreateTab(this, searchUrl, url);
-                    }
-                }
-                txtLaunchUrl.Text = string.Empty;
             }
         }
 
