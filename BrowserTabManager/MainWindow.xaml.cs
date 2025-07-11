@@ -110,7 +110,24 @@ namespace BrowserTabManager
 
         private void NewTabButton_Click(object sender, RoutedEventArgs e)
         {
-                LaunchTabFromUrl(txtLaunchUrl.Text.Trim());
+            // Hide all frames
+            foreach (var tab in TabsList)
+            {
+                tab.displayFrame = false;
+            }
+            OrganizeFrames();
+            LaunchTabFromUrl(txtLaunchUrl.Text.Trim());
+        }
+
+        private void NewScreenButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Hide all frames
+            foreach (var tab in TabsList)
+            {
+                tab.displayFrame = false;
+            }
+            OrganizeFrames();
+            LaunchTabFromUrl(txtLaunchUrl.Text.Trim());
         }
 
         // Launch a new tab from a URL string (refactored from TxtLaunchUrl_KeyDown)
@@ -187,7 +204,10 @@ namespace BrowserTabManager
             ShowHideBookmarksButton.Click += ShowHideBookmarksButton_Click;
             ShowHideTabListButton.Click += ShowHideTabListButton_Click;
             NewTabButton.Click += NewTabButton_Click;
+            NewScreenButton.Click += NewScreenButton_Click;
             txtLaunchUrl.KeyDown += new KeyEventHandler(TxtLaunchUrl_KeyDown);
+            btnAddRowToFramesGrid.Click += btnAddRowToFramesGrid_Click;
+            btnSubtractRowFromFramesGrid.Click += btnSubtractRowFromFramesGrid_Click;
 
             bool loadedFromFile = false;
             try
