@@ -33,6 +33,20 @@ namespace BrowserTabManager
         
         internal List<CustomBookmark> BookmarksList = new List<CustomBookmark>();
         internal List<CustomTab> TabsList = new List<CustomTab>();
+        internal List<CustomScreen> ScreenList = new List<CustomScreen>();
+        private CustomScreen _currentScreen;
+        public CustomScreen CurrentScreen
+        {
+            get => _currentScreen;
+            set
+            {
+                if (_currentScreen != value)
+                {
+                    _currentScreen = value;
+                    LoadScreen(value);
+                }
+            }
+        }
 
         // Static images for bookmark toggle
         private static readonly Image BookmarkOffImage = new Image {
@@ -110,27 +124,23 @@ namespace BrowserTabManager
 
         private void NewTabButton_Click(object sender, RoutedEventArgs e)
         {
-            // Hide all frames
-            foreach (var tab in TabsList)
+            if (CurrentScreen != null)
             {
-                tab.displayFrame = false;
+                var newTab = tabHelper.CreateTab("https://www.google.com", "Google");
+                CurrentScreen.TabList.Add(newTab);
+                newTab.displayFrame = true;
+                OrganizeFrames();
             }
-            OrganizeFrames();
-            LaunchTabFromUrl(txtLaunchUrl.Text.Trim());
         }
 
         private void NewScreenButton_Click(object sender, RoutedEventArgs e)
         {
-            // Hide all frames
-            foreach (var tab in TabsList)
-            {
-                tab.displayFrame = false;
-            }
-            OrganizeFrames();
-            LaunchTabFromUrl(txtLaunchUrl.Text.Trim());
+            var newScreen = new CustomScreen (this.tabHelper);
+            ScreenList.Add(newScreen);
+            CurrentScreen = newScreen;
         }
 
-        // Launch a new tab from a URL string (refactored from TxtLaunchUrl_KeyDown)
+        // Launch a new tab from a URL string (refactored from ScreenNameTextBox_KeyDown)
         private void LaunchTabFromUrl(string url)
         {
             if (string.IsNullOrWhiteSpace(url)) return;
@@ -150,13 +160,45 @@ namespace BrowserTabManager
             tabHelper.CreateTab(url, url);
         }
 
-        private void TxtLaunchUrl_KeyDown(object sender, KeyEventArgs e)
+        private void ScreenNameTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                LaunchTabFromUrl(txtLaunchUrl.Text.Trim());
+                if (sender is TextBox textBox && CurrentScreen != null)
+                {
+                    var newName = textBox.Text.Trim();
+                    if (!string.IsNullOrEmpty(newName) && CurrentScreen.ScreenName != newName)
+                    {
+                        CurrentScreen.ScreenName = newName;
+                    }
+                }
                 e.Handled = true;
             }
+        }
+
+        public void LoadScreen(CustomScreen screenToLoad)
+        {
+            // First, hide all tabs that are currently displayed.
+            // The TabsList in MainWindow holds all tabs across all screens.
+            foreach (var tab in TabsList)
+            {
+                tab.displayFrame = false;
+            }
+
+            // Then, show only the tabs belonging to the screen to load.
+            if (screenToLoad != null)
+            {
+                foreach (var tab in screenToLoad.TabList)
+                {
+                    tab.displayFrame = true;
+                }
+                ScreenNameTextBox.Text = screenToLoad.ScreenName;
+                int screenIndex = ScreenList.IndexOf(screenToLoad) + 1;
+                CurrentScreenLabel.Content = $"Screen {screenIndex} of {ScreenList.Count}";
+            }
+
+            // Re-organize the frames grid to reflect the changes.
+            OrganizeFrames();
         }
 
         public TabHelper tabHelper;
@@ -238,9 +280,11 @@ namespace BrowserTabManager
             ShowHideTabListButton.Click += ShowHideTabListButton_Click;
             NewTabButton.Click += NewTabButton_Click;
             NewScreenButton.Click += NewScreenButton_Click;
-            txtLaunchUrl.KeyDown += new KeyEventHandler(TxtLaunchUrl_KeyDown);
+            ScreenNameTextBox.KeyDown += new KeyEventHandler(ScreenNameTextBox_KeyDown);
             btnAddRowToFramesGrid.Click += btnAddRowToFramesGrid_Click;
             btnSubtractRowFromFramesGrid.Click += btnSubtractRowFromFramesGrid_Click;
+            btnPreviousScreen.Click += BtnPreviousScreen_Click;
+            btnNextScreen.Click += BtnNextScreen_Click;
 
             bool loadedFromFile = false;
             try
@@ -291,9 +335,8 @@ namespace BrowserTabManager
                 CreateBookmark("https://www.temu.com/", "Temu");
                 CreateBookmark("https://www.tiktok.com/", "TikTok");
                 CreateBookmark("https://www.tumblr.com/", "Tumblr");
-                CreateBookmark("https://www.twitch.tv/", "Twitch");
-                CreateBookmark("https://www.twitter.com/", "Twitter (X.com)");
-                CreateBookmark("https://www.walmart.com/", "Walmart");
+                CreateBookmark("https://www.twitch.tv/", "Twitter (X.com)");
+                CreateBookmark("https://www.twitter.com/", "Walmart");
                 CreateBookmark("https://www.weather.com/", "Weather");
                 CreateBookmark("https://www.whatsapp.com/", "WhatsApp");
                 CreateBookmark("https://www.wikipedia.org/", "Wikipedia");
@@ -301,30 +344,64 @@ namespace BrowserTabManager
                 CreateBookmark("https://www.youtube.com/", "YouTube");
             }
 
-            // Load open tabs from opentabs.json
+            // Load screens and tabs from screens.json
             try
             {
-                if (File.Exists("opentabs.json"))
+                if (File.Exists("screens.json"))
                 {
-                    var json = File.ReadAllText("opentabs.json");
-                    var tabs = JsonSerializer.Deserialize<List<OpenTabJsonEntry>>(json);
-                    if (tabs != null && tabs.Count > 0)
+                    var json = File.ReadAllText("screens.json");
+                    var screenEntries = JsonSerializer.Deserialize<List<ScreenJsonEntry>>(json);
+                    if (screenEntries != null && screenEntries.Count > 0)
                     {
-                        foreach (var entry in tabs)
+                        foreach (var screenEntry in screenEntries)
                         {
-                            tabHelper.CreateTab(entry.URL, entry.Title);
-                            // Set displayFrame after tab is created
-                            var createdTab = TabsList.LastOrDefault();
-                            if (createdTab != null)
+                            var newScreen = new CustomScreen(this.tabHelper);
+                            ScreenList.Add(newScreen);
+                            foreach (var tabEntry in screenEntry.TabList)
                             {
-                                createdTab.displayFrame = entry.DisplayFrame;
+                                var newTab = tabHelper.CreateTab(tabEntry.URL, tabEntry.Title);
+                                newTab.displayFrame = tabEntry.DisplayFrame;
+                                newScreen.TabList.Add(newTab);
                             }
                         }
                     }
                 }
-                OrganizeFrames();
             }
-            catch { /* Ignore and do not open tabs if error */ }
+            catch { /* Ignore and start fresh */ }
+
+            if (ScreenList.Any())
+            {
+                CurrentScreen = ScreenList.Last();
+            }
+            else
+            {
+                // Create a default screen if none were loaded
+                var defaultScreen = new CustomScreen (this.tabHelper);
+                ScreenList.Add(defaultScreen);
+                CurrentScreen = defaultScreen;
+            }
+
+            OrganizeFrames();
+        }
+
+        private void BtnNextScreen_Click(object sender, RoutedEventArgs e)
+        {
+            if (ScreenList.Count > 1)
+            {
+                int currentIndex = ScreenList.IndexOf(CurrentScreen);
+                int nextIndex = (currentIndex + 1) % ScreenList.Count;
+                CurrentScreen = ScreenList[nextIndex];
+            }
+        }
+
+        private void BtnPreviousScreen_Click(object sender, RoutedEventArgs e)
+        {
+            if (ScreenList.Count > 1)
+            {
+                int currentIndex = ScreenList.IndexOf(CurrentScreen);
+                int previousIndex = (currentIndex - 1 + ScreenList.Count) % ScreenList.Count;
+                CurrentScreen = ScreenList[previousIndex];
+            }
         }
 
         private void TxtSearchBookmarks_TextChanged(object sender, TextChangedEventArgs e)
@@ -615,7 +692,7 @@ namespace BrowserTabManager
                 int newColIndex = FramesGrid.ColumnDefinitions.Count;
                 if (newColIndex % 2 == 0)
                 {
-                    // Even index: star width, empty
+                    // Even index: star size, empty
                     var colDef = new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) };
                     FramesGrid.ColumnDefinitions.Add(colDef);
                 }
@@ -756,10 +833,19 @@ namespace BrowserTabManager
             var json = JsonSerializer.Serialize(bookmarksToSave, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText("bookmarks.json", json);
 
-            // Save open tabs to JSON
-            var openTabsToSave = TabsList.Select(t => new { Title = t.Frame_TitleTextBox?.Text ?? "", URL = t.Frame_UrlTextBox?.Text ?? "", DisplayFrame = t.displayFrame }).ToList();
-            var openTabsJson = JsonSerializer.Serialize(openTabsToSave, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText("opentabs.json", openTabsJson);
+            // Save screens and their tabs to JSON
+            var screensToSave = ScreenList.Select(s => new ScreenJsonEntry
+            {
+                ScreenName = s.ScreenName,
+                TabList = s.TabList.Select(t => new OpenTabJsonEntry
+                {
+                    Title = t.Frame_TitleTextBox?.Text ?? "",
+                    URL = t.Frame_UrlTextBox?.Text ?? "",
+                    DisplayFrame = t.displayFrame
+                }).ToList()
+            }).ToList();
+            var screensJson = JsonSerializer.Serialize(screensToSave, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText("screens.json", screensJson);
 
             foreach (var tab in TabsList)
             {
@@ -897,12 +983,20 @@ namespace BrowserTabManager
             public string URL { get; set; }
         }
 
-        private class OpenTabJsonEntry
+        public class OpenTabJsonEntry
         {
             public string Title { get; set; }
             public string URL { get; set; }
-            public bool DisplayFrame { get; set; } = true;
+            public bool DisplayFrame { get; set; }
         }
+
+        public class ScreenJsonEntry
+        {
+            public string ScreenName { get; set; }
+            public List<OpenTabJsonEntry> TabList { get; set; }
+        }
+
+
     }
 
     // CustomBookmark and CustomTab classes have been moved to their own files.

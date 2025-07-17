@@ -17,12 +17,12 @@ namespace BrowserTabManager
             this.mainWindow = mainWindow;
         }
 
-        public void CreateTab(string urlString, string nameString)
+        public CustomTab CreateTab(string urlString, string nameString)
         {
-            CreateTabInternal(urlString, nameString, null);
+            return CreateTabInternal(urlString, nameString, null);
         }
 
-        public void CreateTabInternal(string urlString, string nameString, WebView2 webViewToClone = null)
+        public CustomTab CreateTabInternal(string urlString, string nameString, WebView2 webViewToClone = null)
         {
             try
             {
@@ -400,11 +400,13 @@ namespace BrowserTabManager
 
                 customTab.displayFrame = true;
                 mainWindow.OrganizeFrames();
+                return customTab;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"CreateTabInternal failed: {ex}");
                 MessageBox.Show($"Failed to create tab:\n{ex.Message}", "Tab Creation Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
             }
         }
     }
