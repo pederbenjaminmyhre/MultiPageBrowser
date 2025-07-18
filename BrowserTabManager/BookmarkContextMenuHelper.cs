@@ -10,30 +10,36 @@ namespace BrowserTabManager
             var contextMenu = new ContextMenu();
 
             // Launch menu item
-            var launchMenuItem = new MenuItem { Header = "Launch" };
-            launchMenuItem.Click += (s, e) => mainWindow.tabHelper.CreateTab(customBookmark.URL, customBookmark.TitleLabel.Content?.ToString() ?? string.Empty);
+            var launchMenuItem = new MenuItem { Header = $"Browse to {customBookmark.TitleLabel.Content}" };
+            launchMenuItem.Click += (s, e) =>
+            {
+                CustomTab customTab = mainWindow.tabHelper.CreateTab(customBookmark.URL, customBookmark.TitleLabel.Content?.ToString() ?? string.Empty);
+                mainWindow.CurrentScreen.TabList.Add(customTab);
+            };
             contextMenu.Items.Add(launchMenuItem);
 
             // Launch in New Screen menu item
-            var launchNewScreenMenuItem = new MenuItem { Header = "Launch in New Screen" };
+            var launchNewScreenMenuItem = new MenuItem { Header = $"Browse to {customBookmark.TitleLabel.Content} in a new screen" };
             launchNewScreenMenuItem.Click += (s, e) => {
                 foreach (var tab in mainWindow.TabsList)
                 {
                     tab.displayFrame = false;
                 }
-                mainWindow.OrganizeFrames();
-                mainWindow.tabHelper.CreateTab(customBookmark.URL, customBookmark.TitleLabel.Content?.ToString() ?? string.Empty);
+                
+                CustomTab customTab = mainWindow.tabHelper.CreateTab(customBookmark.URL, customBookmark.TitleLabel.Content?.ToString() ?? string.Empty);
+                CustomScreen customScreen = mainWindow.CreateScreen();
+                mainWindow.CurrentScreen.TabList.Add(customTab);
             };
             contextMenu.Items.Add(launchNewScreenMenuItem);
 
-            var editMenuItem = new MenuItem { Header = "Edit" };
-            editMenuItem.Click += (s, e) => mainWindow.EditBookmarkContext(customBookmark);
+            var editMenuItem = new MenuItem { Header = $"Edit {customBookmark.TitleLabel.Content}" };
+            editMenuItem.Click += (s, e) => mainWindow.bookmarkHelper.EditBookmarkContext(customBookmark);
 
-            var deleteMenuItem = new MenuItem { Header = "Delete" };
-            deleteMenuItem.Click += (s, e) => mainWindow.DeleteBookmarkContext(customBookmark);
+            var deleteMenuItem = new MenuItem { Header = $"Delete {customBookmark.TitleLabel.Content}" };
+            deleteMenuItem.Click += (s, e) => mainWindow.bookmarkHelper.DeleteBookmarkContext(customBookmark);
 
-            var addMenuItem = new MenuItem { Header = "Create Bookmark" };
-            addMenuItem.Click += (s, e) => mainWindow.AddBookmarkContext(customBookmark);
+            var addMenuItem = new MenuItem { Header = "Create a New Bookmark" };
+            addMenuItem.Click += (s, e) => mainWindow.bookmarkHelper.AddBookmarkContext(customBookmark);
 
             
             contextMenu.Items.Add(editMenuItem);

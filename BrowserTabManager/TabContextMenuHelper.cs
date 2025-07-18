@@ -33,14 +33,14 @@ namespace BrowserTabManager
             hideShowMenuItem.Click += (s, e) =>
             {
                 customTab.displayFrame = !customTab.displayFrame;
-                mainWindow.OrganizeFrames();
+                mainWindow.frameHelper.OrganizeFrames();
                 UpdateHideShowHeader();
             };
             contextMenu.Items.Add(hideShowMenuItem);
 
             // Close
             var closeMenuItem = new MenuItem { Header = "Close" };
-            closeMenuItem.Click += (s, e) => mainWindow.CloseTab(customTab);
+            closeMenuItem.Click += (s, e) => mainWindow.tabHelper.CloseTab(customTab);
             contextMenu.Items.Add(closeMenuItem);
 
             // Hide other tabs
@@ -49,7 +49,7 @@ namespace BrowserTabManager
             {
                 foreach (var tab in mainWindow.TabsList)
                     tab.displayFrame = (tab == customTab);
-                mainWindow.OrganizeFrames();
+                mainWindow.frameHelper.OrganizeFrames();
             };
             contextMenu.Items.Add(hideOthersMenuItem);
 
@@ -59,7 +59,7 @@ namespace BrowserTabManager
             {
                 var toClose = mainWindow.TabsList.Where(t => t != customTab).ToList();
                 foreach (var tab in toClose)
-                    mainWindow.CloseTab(tab);
+                    mainWindow.tabHelper.CloseTab(tab);
             };
             contextMenu.Items.Add(closeOthersMenuItem);
 
@@ -70,7 +70,7 @@ namespace BrowserTabManager
                 string url = customTab.Frame_UrlTextBox.Text;
                 if (!mainWindow.BookmarksList.Any(b => string.Equals(b.URL?.Trim(), url?.Trim(), System.StringComparison.OrdinalIgnoreCase)))
                 {
-                    mainWindow.CreateBookmark(url, customTab.Frame_TitleTextBox.Text);
+                    mainWindow.bookmarkHelper.CreateBookmark(url, customTab.Frame_TitleTextBox.Text);
                 }
             };
             contextMenu.Items.Add(bookmarkMenuItem);

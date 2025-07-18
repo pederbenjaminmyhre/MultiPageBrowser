@@ -14,6 +14,8 @@
     <None Remove="BookmarkOn.png" />
     <None Remove="Clone.png" />
     <None Remove="Close.png" />
+    <None Remove="Icons\NextScreen.png" />
+    <None Remove="Icons\PrevScreen.png" />
     <None Remove="Minimize.png" />
     <None Remove="Minus.png" />
     <None Remove="noun-refresh-1977395.png" />
@@ -49,7 +51,13 @@
     <Resource Include="Icons\Minus.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Icons\NextScreen.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Icons\Plus.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Icons\PrevScreen.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Icons\Refresh.png">

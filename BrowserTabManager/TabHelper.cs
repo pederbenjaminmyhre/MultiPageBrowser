@@ -1,11 +1,12 @@
-using System.Windows.Controls;
 using Microsoft.Web.WebView2.Wpf;
-using System.Windows.Media;
-using System.Windows;
-using System.Linq;
-using System.Diagnostics;
-using System.Windows.Media.Imaging;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace BrowserTabManager
 {
@@ -22,6 +23,26 @@ namespace BrowserTabManager
             return CreateTabInternal(urlString, nameString, null);
         }
 
+        public static Image CreateBookmarkOffImage()
+        {
+            return new Image
+            {
+                Source = new BitmapImage(new Uri("pack://application:,,,/Icons/BookmarkOff.png")),
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+        }
+        public static Image CreateBookmarkOnImage()
+        {
+            return new Image
+            {
+                Source = new BitmapImage(new Uri("pack://application:,,,/Icons/BookmarkOn.png")),
+                Stretch = Stretch.Uniform,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+        }
         public CustomTab CreateTabInternal(string urlString, string nameString, WebView2 webViewToClone = null)
         {
             try
@@ -48,7 +69,8 @@ namespace BrowserTabManager
 
                 // Tab Title Label
                 var tab_TitleLabel = new Label();
-                tab_TitleLabel.Margin = new Thickness(0, 3, 8, 3);
+                //tab_TitleLabel.Margin = new Thickness(0, 3, 8, 3);
+                tab_TitleLabel.Margin = new Thickness(0, 1, 8, 1);
                 tab_TitleLabel.Background = Brushes.White;
                 tab_TitleLabel.Effect = new System.Windows.Media.Effects.DropShadowEffect {
                     Color = Color.FromArgb(100, 0, 0, 0), // lighter shadow
@@ -58,7 +80,8 @@ namespace BrowserTabManager
                 };
                 var labelTemplate = new ControlTemplate(typeof(Label));
                 var borderFactory = new FrameworkElementFactory(typeof(Border));
-                borderFactory.SetValue(Border.CornerRadiusProperty, new CornerRadius(0,8,8,0));
+                //borderFactory.SetValue(Border.CornerRadiusProperty, new CornerRadius(0,8,8,0));
+                borderFactory.SetValue(Border.CornerRadiusProperty, new CornerRadius(0, 10, 10, 0));
                 borderFactory.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Label.BackgroundProperty));
                 borderFactory.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(Label.BorderBrushProperty));
                 borderFactory.SetValue(Border.BorderThicknessProperty, new TemplateBindingExtension(Label.BorderThicknessProperty));
@@ -86,7 +109,7 @@ namespace BrowserTabManager
                     FontWeight = FontWeights.SemiBold
                 };
                 tab_TitleLabel.Content = tabTitleTextBlock;
-                tab_TitleLabel.MouseLeftButtonUp += mainWindow.TabTitleLabel_Click;
+                tab_TitleLabel.MouseLeftButtonUp += mainWindow.tabHelper.TabTitleLabel_Click;
                 // Attach context menu for right-click
                 TabContextMenuHelper.AttachContextMenu(mainWindow, customTab);
                 tab_TitleLabel.MouseEnter += (s, e) => {
@@ -220,7 +243,7 @@ namespace BrowserTabManager
                 frameAddress_Grid.Children.Add(frame_BackButton);
                 customTab.Frame_BackButton = frame_BackButton;
                 frame_BackButton.Tag = customTab;
-                frame_BackButton.Click += mainWindow.FrameBackButton_Click;
+                frame_BackButton.Click += mainWindow.frameHelper.FrameBackButton_Click;
 
                 // Frame Url TextBox
                 var frame_UrlTextBox = new TextBox
@@ -241,7 +264,7 @@ namespace BrowserTabManager
                 customTab.Frame_UrlTextBox = frame_UrlTextBox;
                 frame_UrlTextBox.Tag = customTab;
                 frame_UrlTextBox.Text = urlString;
-                frame_UrlTextBox.KeyDown += mainWindow.FrameUrlTextBox_KeyDown;
+                frame_UrlTextBox.KeyDown += mainWindow.frameHelper.FrameUrlTextBox_KeyDown;
                 frame_UrlTextBox.PreviewMouseDown += (s, e) => {
                     if (s is TextBox tb && tb.Tag is CustomTab tab) {
                         if (!tb.IsKeyboardFocusWithin) {
@@ -278,7 +301,7 @@ namespace BrowserTabManager
                     BorderBrush = Brushes.Transparent,
                     ToolTip = "Bookmark"
                 };
-                frame_ToggleBookmarkButton.Content = mainWindow.GetType().GetMethod("CreateBookmarkOffImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
+                frame_ToggleBookmarkButton.Content = CreateBookmarkOffImage();
                 Grid.SetColumn(frame_ToggleBookmarkButton, 3);
                 frameAddress_Grid.Children.Add(frame_ToggleBookmarkButton);
                 customTab.Frame_ToggleBookmarkButton = frame_ToggleBookmarkButton;
@@ -286,8 +309,8 @@ namespace BrowserTabManager
                 frame_ToggleBookmarkButton.Click += (s, e) => {
                     if (s is Button btn) {
                         bool isOn = (bool)btn.Tag;
-                        var offImg = mainWindow.GetType().GetMethod("CreateBookmarkOffImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
-                        var onImg = mainWindow.GetType().GetMethod("CreateBookmarkOnImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
+                        var offImg = mainWindow.GetType().GetMethod("this.mainWindow.CreateBookmarkOffImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
+                        var onImg = mainWindow.GetType().GetMethod("this.mainWindow.CreateBookmarkOnImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null);
                         btn.Content = isOn ? offImg : onImg;
                         btn.Tag = !isOn;
                     }
@@ -323,7 +346,7 @@ namespace BrowserTabManager
                 frameTitle_Grid.Children.Add(frame_CloseButton);
                 customTab.Frame_CloseButton = frame_CloseButton;
                 frame_CloseButton.Tag = customTab;
-                frame_CloseButton.Click += (s, e) => mainWindow.CloseTab(customTab);
+                frame_CloseButton.Click += (s, e) => mainWindow.tabHelper.CloseTab(customTab);
 
                 // Frame Hide Button
                 var frame_HideButton = new Button { Height = 15, Width = 15, FontSize = 9, FontWeight = FontWeights.Bold, Background = (Brush)new BrushConverter().ConvertFromString("#E2E6EC"), BorderThickness = new Thickness(0), BorderBrush = Brushes.Transparent };
@@ -339,7 +362,7 @@ namespace BrowserTabManager
                 frameTitle_Grid.Children.Add(frame_HideButton);
                 customTab.Frame_HideButton = frame_HideButton;
                 frame_HideButton.Tag = customTab;
-                frame_HideButton.Click += (s, e) => mainWindow.HideTabFrame(customTab);
+                frame_HideButton.Click += (s, e) => mainWindow.frameHelper.HideTabFrame(customTab);
 
                 // Frame Title TextBox
                 var frame_TitleTextBox = new TextBox {
@@ -354,7 +377,7 @@ namespace BrowserTabManager
                 customTab.Frame_TitleTextBox = frame_TitleTextBox;
                 frame_TitleTextBox.Tag = customTab;
                 frame_TitleTextBox.Text = nameString;
-                frame_TitleTextBox.TextChanged += mainWindow.FrameTitleTextBox_TextChanged;
+                frame_TitleTextBox.TextChanged += mainWindow.frameHelper.FrameTitleTextBox_TextChanged;
 
                 // Frame WebView2
                 WebView2 frame_WebView;
@@ -386,8 +409,8 @@ namespace BrowserTabManager
                 frame_Grid.Children.Add(frame_WebView);
                 customTab.Frame_WebView = frame_WebView;
                 frame_WebView.Tag = customTab;
-                frame_WebView.NavigationCompleted += mainWindow.FrameWebView_NavigationCompleted;
-                frame_WebView.CoreWebView2InitializationCompleted += mainWindow.FrameWebView_CoreWebView2InitializationCompleted;
+                frame_WebView.NavigationCompleted += mainWindow.frameHelper.FrameWebView_NavigationCompleted;
+                frame_WebView.CoreWebView2InitializationCompleted += mainWindow.frameHelper.FrameWebView_CoreWebView2InitializationCompleted;
 
                 if (urlString == nameString && webViewToClone == null)
                 {
@@ -399,7 +422,7 @@ namespace BrowserTabManager
                 //};
 
                 customTab.displayFrame = true;
-                mainWindow.OrganizeFrames();
+                mainWindow.frameHelper.OrganizeFrames();
                 return customTab;
             }
             catch (Exception ex)
@@ -407,6 +430,34 @@ namespace BrowserTabManager
                 Debug.WriteLine($"CreateTabInternal failed: {ex}");
                 MessageBox.Show($"Failed to create tab:\n{ex.Message}", "Tab Creation Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return null;
+            }
+        }
+
+        internal void CloseTab(CustomTab customTab)
+        {
+            this.mainWindow.TabsList.Remove(customTab);
+            this.mainWindow.TabStack.Children.Remove(customTab.Tab_Border);
+            this.mainWindow.FramesGrid.Children.Remove(customTab.Frame_Border);
+            customTab.Frame_WebView?.Dispose();
+
+            // Remove columns from right to left until FramesGrid.ColumnDefinitions.Count < needed
+            int rowCount = this.mainWindow.FramesGrid.RowDefinitions.Count > 0 ? this.mainWindow.FramesGrid.RowDefinitions.Count : 1;
+            int needed = (int)(System.Math.Ceiling((double)this.mainWindow.TabsList.Count / rowCount) * 2) - 1;
+            while (this.mainWindow.FramesGrid.ColumnDefinitions.Count > needed && this.mainWindow.FramesGrid.ColumnDefinitions.Count > 1)
+            {
+                this.mainWindow.FramesGrid.ColumnDefinitions.RemoveAt(this.mainWindow.FramesGrid.ColumnDefinitions.Count - 1);
+            }
+
+            this.mainWindow.frameHelper.OrganizeFrames();
+        }
+
+
+        internal void TabTitleLabel_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Label label && label.Tag is CustomTab customTab)
+            {
+                customTab.displayFrame = !customTab.displayFrame;
+                this.mainWindow.frameHelper.OrganizeFrames();
             }
         }
     }
