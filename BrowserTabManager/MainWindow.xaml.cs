@@ -134,6 +134,7 @@ namespace BrowserTabManager
                 CurrentScreen.TabList.Add(newTab);
                 newTab.displayFrame = true;
                 this.frameHelper.OrganizeFrames();
+                RefreshTabListDisplay();
             }
         }
 
@@ -209,6 +210,7 @@ namespace BrowserTabManager
 
             // Re-organize the frames grid to reflect the changes.
             this.frameHelper.OrganizeFrames();
+            RefreshTabListDisplay();
         }
 
         private void ManageCurrentScreenButton_Click(object sender, RoutedEventArgs e)
@@ -404,6 +406,7 @@ namespace BrowserTabManager
                 CurrentScreen = defaultScreen;
             }
 
+            RefreshTabListDisplay();
             this.frameHelper.OrganizeFrames();
         }
 
@@ -455,6 +458,7 @@ namespace BrowserTabManager
         {
             if (customTab == null || customTab.Frame_WebView == null) return;
             tabHelper.CreateTabInternal(customTab.Frame_UrlTextBox?.Text ?? "", customTab.Frame_TitleTextBox?.Text ?? "", customTab.Frame_WebView);
+            RefreshTabListDisplay();
         }
 
         public void CoreWebView2_NewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs e)
@@ -466,6 +470,7 @@ namespace BrowserTabManager
             {
                 // Use the link's URL as both urlString and nameString for now
                 tabHelper.CreateTab(uri, uri);
+                RefreshTabListDisplay();
             }
         }
 
@@ -508,31 +513,8 @@ namespace BrowserTabManager
             }
             base.OnClosing(e);
         }
-        //private void TxtSearchTabs_TextChanged(object sender, TextChangedEventArgs e)
-        //{
-        //    string search = txtSearchTabs.Text.Trim().ToLower();
-        //    TabStack.Children.Clear();
-        //    var filtered = new List<CustomTab>();
-        //    foreach (var tab in TabsList)
-        //    {
-        //        string url = tab.Frame_UrlTextBox?.Text?.ToLower() ?? string.Empty;
-        //        string name = string.Empty;
-        //        if (tab.Tab_TitleLabel?.Content is TextBlock tb)
-        //            name = tb.Text.ToLower();
-        //        else
-        //            name = tab.Tab_TitleLabel?.Content?.ToString().ToLower() ?? string.Empty;
-        //        if (string.IsNullOrEmpty(search) || url.Contains(search) || name.Contains(search))
-        //        {
-        //            filtered.Add(tab);
-        //        }
-        //    }
-        //    foreach (var tab in filtered.OrderBy(t => (t.Tab_TitleLabel?.Content as TextBlock)?.Text ?? t.Tab_TitleLabel?.Content?.ToString(), StringComparer.OrdinalIgnoreCase))
-        //    {
-        //        TabStack.Children.Add(tab.Tab_Border);
-        //    }
-        //}
 
-        private void TxtSearchTabs_TextChanged(object sender, TextChangedEventArgs e)
+        public void RefreshTabListDisplay()
         {
             string search = txtSearchTabs.Text.Trim().ToLower();
             TabStack.Children.Clear();
@@ -560,6 +542,11 @@ namespace BrowserTabManager
             {
                 TabStack.Children.Add(tab.Tab_Border);
             }
+        }
+
+        private void TxtSearchTabs_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            RefreshTabListDisplay();
         }
     }
 }

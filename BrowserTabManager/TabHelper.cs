@@ -54,7 +54,6 @@ namespace BrowserTabManager
                 // Tab Border
                 var tab_Border = new Border();
                 tab_Border.Background = Brushes.Transparent;
-                mainWindow.TabStack.Children.Add(tab_Border);
                 customTab.Tab_Border = tab_Border;
                 tab_Border.Tag = customTab;
 
@@ -457,6 +456,7 @@ namespace BrowserTabManager
                 this.mainWindow.FramesGrid.ColumnDefinitions.RemoveAt(this.mainWindow.FramesGrid.ColumnDefinitions.Count - 1);
             }
             this.mainWindow.frameHelper.OrganizeFrames();
+            mainWindow.RefreshTabListDisplay();
         }
 
 
@@ -466,6 +466,7 @@ namespace BrowserTabManager
             {
                 customTab.displayFrame = !customTab.displayFrame;
                 this.mainWindow.frameHelper.OrganizeFrames();
+                mainWindow.RefreshTabListDisplay();
             }
         }
     }
