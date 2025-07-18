@@ -6,7 +6,7 @@ using System.Windows.Media;
 
 namespace BrowserTabManager
 {
-    public class CustomTab
+    public class CustomTab : INotifyPropertyChanged
     {
         private bool _displayFrame = true;
         public bool displayFrame

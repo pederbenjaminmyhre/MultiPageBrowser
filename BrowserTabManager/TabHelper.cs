@@ -435,6 +435,15 @@ namespace BrowserTabManager
 
         internal void CloseTab(CustomTab customTab)
         {
+            // Loop through all screens and remove the tab from their lists
+            foreach (var screen in this.mainWindow.ScreenList)
+            {
+                if (screen.TabList.Contains(customTab))
+                {
+                    screen.TabList.Remove(customTab);
+                }
+            }
+
             this.mainWindow.TabsList.Remove(customTab);
             this.mainWindow.TabStack.Children.Remove(customTab.Tab_Border);
             this.mainWindow.FramesGrid.Children.Remove(customTab.Frame_Border);
@@ -447,7 +456,6 @@ namespace BrowserTabManager
             {
                 this.mainWindow.FramesGrid.ColumnDefinitions.RemoveAt(this.mainWindow.FramesGrid.ColumnDefinitions.Count - 1);
             }
-
             this.mainWindow.frameHelper.OrganizeFrames();
         }
 

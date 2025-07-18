@@ -211,20 +211,6 @@ namespace BrowserTabManager
             this.frameHelper.OrganizeFrames();
         }
 
-        private void CurrentScreenLabel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            ScreenNavigationBorder.Visibility = Visibility.Collapsed;
-            ScreenNameTextBox.Visibility = Visibility.Visible;
-            ScreenNameTextBox.Focus();
-            ScreenNameTextBox.SelectAll();
-        }
-
-        private void ScreenNameTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            ScreenNavigationBorder.Visibility = Visibility.Visible;
-            ScreenNameTextBox.Visibility = Visibility.Collapsed;
-        }
-
         private void ManageCurrentScreenButton_Click(object sender, RoutedEventArgs e)
         {
             var manageScreenWindow = new ManageScreen(CurrentScreen, this);
@@ -318,8 +304,6 @@ namespace BrowserTabManager
             btnSubtractRowFromFramesGrid.Click += this.frameHelper.btnSubtractRowFromFramesGrid_Click;
             btnPreviousScreen.Click += BtnPreviousScreen_Click;
             btnNextScreen.Click += BtnNextScreen_Click;
-            CurrentScreenLabel.MouseLeftButtonUp += CurrentScreenLabel_MouseLeftButtonUp;
-            ScreenNameTextBox.LostFocus += ScreenNameTextBox_LostFocus;
             ManageCurrentScreenButton.Click += ManageCurrentScreenButton_Click;
 
             boolShowBookmarks = true;
@@ -524,6 +508,30 @@ namespace BrowserTabManager
             }
             base.OnClosing(e);
         }
+        //private void TxtSearchTabs_TextChanged(object sender, TextChangedEventArgs e)
+        //{
+        //    string search = txtSearchTabs.Text.Trim().ToLower();
+        //    TabStack.Children.Clear();
+        //    var filtered = new List<CustomTab>();
+        //    foreach (var tab in TabsList)
+        //    {
+        //        string url = tab.Frame_UrlTextBox?.Text?.ToLower() ?? string.Empty;
+        //        string name = string.Empty;
+        //        if (tab.Tab_TitleLabel?.Content is TextBlock tb)
+        //            name = tb.Text.ToLower();
+        //        else
+        //            name = tab.Tab_TitleLabel?.Content?.ToString().ToLower() ?? string.Empty;
+        //        if (string.IsNullOrEmpty(search) || url.Contains(search) || name.Contains(search))
+        //        {
+        //            filtered.Add(tab);
+        //        }
+        //    }
+        //    foreach (var tab in filtered.OrderBy(t => (t.Tab_TitleLabel?.Content as TextBlock)?.Text ?? t.Tab_TitleLabel?.Content?.ToString(), StringComparer.OrdinalIgnoreCase))
+        //    {
+        //        TabStack.Children.Add(tab.Tab_Border);
+        //    }
+        //}
+
         private void TxtSearchTabs_TextChanged(object sender, TextChangedEventArgs e)
         {
             string search = txtSearchTabs.Text.Trim().ToLower();
@@ -542,7 +550,13 @@ namespace BrowserTabManager
                     filtered.Add(tab);
                 }
             }
-            foreach (var tab in filtered.OrderBy(t => (t.Tab_TitleLabel?.Content as TextBlock)?.Text ?? t.Tab_TitleLabel?.Content?.ToString(), StringComparer.OrdinalIgnoreCase))
+
+            var sortedTabs = filtered
+                .OrderBy(t => CurrentScreen.TabList.Contains(t) ? 0 : 1) // Tabs in current screen get priority 0
+                .ThenByDescending(t => t.displayFrame)
+                .ThenBy(t => TabsList.IndexOf(t));
+
+            foreach (var tab in sortedTabs)
             {
                 TabStack.Children.Add(tab.Tab_Border);
             }

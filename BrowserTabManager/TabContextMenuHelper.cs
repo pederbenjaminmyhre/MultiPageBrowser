@@ -43,26 +43,6 @@ namespace BrowserTabManager
             closeMenuItem.Click += (s, e) => mainWindow.tabHelper.CloseTab(customTab);
             contextMenu.Items.Add(closeMenuItem);
 
-            // Hide other tabs
-            var hideOthersMenuItem = new MenuItem { Header = "Hide other tabs" };
-            hideOthersMenuItem.Click += (s, e) =>
-            {
-                foreach (var tab in mainWindow.TabsList)
-                    tab.displayFrame = (tab == customTab);
-                mainWindow.frameHelper.OrganizeFrames();
-            };
-            contextMenu.Items.Add(hideOthersMenuItem);
-
-            // Close other tabs
-            var closeOthersMenuItem = new MenuItem { Header = "Close other tabs" };
-            closeOthersMenuItem.Click += (s, e) =>
-            {
-                var toClose = mainWindow.TabsList.Where(t => t != customTab).ToList();
-                foreach (var tab in toClose)
-                    mainWindow.tabHelper.CloseTab(tab);
-            };
-            contextMenu.Items.Add(closeOthersMenuItem);
-
             // Bookmark
             var bookmarkMenuItem = new MenuItem { Header = "Bookmark" };
             bookmarkMenuItem.Click += (s, e) =>
