@@ -1,6 +1,8 @@
+using Microsoft.Web.WebView2.Wpf;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Microsoft.Web.WebView2.Wpf;
 
 namespace BrowserTabManager
 {
@@ -13,6 +15,7 @@ namespace BrowserTabManager
             set
             {
                 _displayFrame = value;
+                OnPropertyChanged();
                 if (Tab_TitleLabel != null)
                 {
                     if (value)
@@ -44,6 +47,12 @@ namespace BrowserTabManager
                 }
             }
         }
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public Border Tab_Border { get; set; }
         public Grid Tab_Grid { get; set; }
         public Label Tab_TitleLabel { get; set; }

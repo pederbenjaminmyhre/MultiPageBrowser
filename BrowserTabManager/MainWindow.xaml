@@ -219,6 +219,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="150" />
             </Grid.ColumnDefinitions>
+            <Button x:Name="ManageCurrentScreenButton" Content="Hidden Tabs" Grid.Column="1" Margin="5" />
             <TextBox x:Name="ScreenNameTextBox" Grid.Column="2" Margin="0,4,0,4" Height="20" Width="260" VerticalAlignment="Center" FontSize="{Binding ElementName=CurrentScreenLabel, Path=FontSize}" Padding="4,1,8,0" Background="White" BorderBrush="#CCC" BorderThickness="1">
                 <TextBox.Style>
                     <Style TargetType="TextBox">
@@ -226,21 +227,21 @@
                             <Setter.Value>
                                 <ControlTemplate TargetType="TextBox">
                                     <Grid>
-                                        <Border CornerRadius="2" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                                        <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
                                             <ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
                                         </Border>
-                                        <ContentControl x:Name="ScreenNameWatermark"
-                                                               IsHitTestVisible="False"
-                                                               Content="Give this screen a name"
-                                                               Foreground="#888"
-                                                               Margin="6,0,0,0"
-                                                               VerticalAlignment="Center"
-                                                               Opacity="0.8"
-                                                               Visibility="Collapsed"/>
+                                        <ContentControl x:Name="Watermark"
+                                                       IsHitTestVisible="False"
+                                                       Content="Enter Screen Name"
+                                                       Foreground="#888"
+                                                       Margin="10,0,0,0"
+                                                       VerticalAlignment="Center"
+                                                       Opacity="0.8"
+                                                       Visibility="Collapsed"/>
                                     </Grid>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="Text" Value="">
-                                            <Setter TargetName="ScreenNameWatermark" Property="Visibility" Value="Visible"/>
+                                            <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>

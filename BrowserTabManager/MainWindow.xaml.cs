@@ -219,6 +219,18 @@ namespace BrowserTabManager
             ScreenNameTextBox.SelectAll();
         }
 
+        private void ScreenNameTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ScreenNavigationBorder.Visibility = Visibility.Visible;
+            ScreenNameTextBox.Visibility = Visibility.Collapsed;
+        }
+
+        private void ManageCurrentScreenButton_Click(object sender, RoutedEventArgs e)
+        {
+            var manageScreenWindow = new ManageScreen(CurrentScreen, this);
+            manageScreenWindow.Show();
+        }
+
         public TabHelper tabHelper;
 
         private CustomTab _customTabInFocus;
@@ -307,6 +319,8 @@ namespace BrowserTabManager
             btnPreviousScreen.Click += BtnPreviousScreen_Click;
             btnNextScreen.Click += BtnNextScreen_Click;
             CurrentScreenLabel.MouseLeftButtonUp += CurrentScreenLabel_MouseLeftButtonUp;
+            ScreenNameTextBox.LostFocus += ScreenNameTextBox_LostFocus;
+            ManageCurrentScreenButton.Click += ManageCurrentScreenButton_Click;
 
             boolShowBookmarks = true;
             boolShowTabList = true;
