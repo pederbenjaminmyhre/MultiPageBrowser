@@ -6,24 +6,59 @@
         xmlns:local="clr-namespace:BrowserTabManager"
         mc:Ignorable="d"
         Title="Manage Screen" Height="450" Width="500">
-    <Grid>
+    <Grid Margin="5">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Label x:Name="ScreenTitleLabel" Grid.Row="0" Content="Screen" HorizontalAlignment="Center" FontSize="16" FontWeight="Bold" Margin="5"/>
-        <ListBox x:Name="TabsListBox" Grid.Row="1" ItemsSource="{Binding TabList}">
+        <Grid Grid.Row="1" Margin="5,0,5,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Title" FontWeight="Bold" Grid.Column="0"/>
+            <TextBlock Text="Visible" FontWeight="Bold" Grid.Column="1" Margin="10,0,10,0"/>
+            <TextBlock Text="Action" FontWeight="Bold" Grid.Column="2"/>
+        </Grid>
+        <ListBox x:Name="TabsListBox" Grid.Row="2" ItemsSource="{Binding TabList}" HorizontalContentAlignment="Stretch">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="0"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding Frame_TitleTextBox.Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0"/>
-                        <CheckBox IsChecked="{Binding displayFrame, Mode=TwoWay}" Grid.Column="1" VerticalAlignment="Center" Margin="3,0,3,0"/>
-                        <Button Content="Delete" Grid.Column="2" Margin="0" Click="DeleteButton_Click"/>
+                        <Label Content="{Binding Frame_TitleTextBox.Text}" Grid.Column="0" VerticalAlignment="Center" Padding="0,3"/>
+                        <CheckBox IsChecked="{Binding displayFrame, Mode=TwoWay}" Grid.Column="1" VerticalAlignment="Center" Margin="10,0,10,0"/>
+                        <Button Grid.Column="2" Margin="0" Click="DeleteButton_Click" VerticalAlignment="Center">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                </Style>
+                            </Button.Style>
+                            <TextBlock Text="Delete" Foreground="Blue">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Button}}" Value="True">
+                                                <Setter Property="TextDecorations" Value="Underline"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Button>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
