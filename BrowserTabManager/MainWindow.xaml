@@ -23,12 +23,19 @@
                 <ColumnDefinition Width="150" />
             </Grid.ColumnDefinitions>
             <!-- Bookmarks Grid -->
-            <Button x:Name="ShowHideBookmarksButton" Content="Bookmarks" ToolTip="Toggle Bookmarks Panel" 
-                    Margin="0,0,0,0" Background="#f5f5f5" BorderBrush="#b0b0b0" BorderThickness="1" 
-                    Padding="10,2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+            <!--<Button x:Name="ShowHideBookmarksButton" Content="Bookmarks" ToolTip="Toggle Bookmarks Panel" 
+                    Margin="0,0,0,0" Background="#c7d6e8" BorderBrush="#b0b0b0" BorderThickness="1" 
+                    Padding="10,2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />-->
 
+            <Button x:Name="ShowHideBookmarksButton" Content="Bookmarks" ToolTip="Toggle Bookmarks Panel" 
+                    Margin="0,0,0,0" Background="#c7d6e8" BorderBrush="#b0b0b0" BorderThickness="0,0,0,1" 
+                    Padding="10,2" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+            
+            <Border Grid.Column="1" BorderBrush="DarkGray" BorderThickness="1,0,0,0" Margin="1,0,0,0" />
+            <Border Grid.Column="5" BorderBrush="DarkGray" BorderThickness="0,0,1,0" Margin="0,0,1,0" />
+            
             <!-- Launch URL StackPanel -->
-            <StackPanel Orientation="Horizontal" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0">
+            <StackPanel x:Name="CentralHeaderPanel" Orientation="Horizontal" Grid.Column="3" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0">
                 <Button x:Name="NewTabButton" Content="Add a Tab to This Screen" ToolTip="Add a new tab to current screen" Margin="4,4,4,4" Height="28" MinWidth="150" VerticalAlignment="Center" Background="#f5f5f5" BorderBrush="#b0b0b0" BorderThickness="1">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
@@ -74,8 +81,8 @@
             </StackPanel>
             <!-- Tabs StackPanel -->
 
-            <Button x:Name="ShowHideTabListButton" Grid.Column="6"  Content="Tab List" ToolTip="Toggle Tab List Panel" 
-                    Margin="0,0,0,0" Background="#f5f5f5" BorderBrush="#b0b0b0" BorderThickness="1"  HorizontalAlignment="Stretch" 
+            <Button x:Name="ShowHideTabListButton" Grid.Column="6"  Content="Tab Picker" ToolTip="Toggle Tab List Panel" 
+                    Margin="0,0,0,0" Background="#c7d6e8" BorderBrush="#b0b0b0" BorderThickness="0,0,0,1"  HorizontalAlignment="Stretch" 
                     VerticalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="0,0,0,0" />
 
         </Grid>
@@ -94,43 +101,45 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <StackPanel x:Name="BookmarkGridSearch" Grid.Row="0" Orientation="Vertical">
+                <Border Grid.Row="0" BorderBrush="#b0b0b0" BorderThickness="0,0,0,1" Background="#c7d6e8">
+                    <StackPanel x:Name="BookmarkGridSearch" Grid.Row="0" Orientation="Vertical">
 
-                    <TextBox x:Name="txtSearchBookmarks" Margin="8,5,8,5" Height="20">
-                        <TextBox.Style>
-                            <Style TargetType="TextBox">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="TextBox">
-                                            <Grid>
-                                                <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
-                                                    <ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
-                                                </Border>
-                                                <ContentControl x:Name="Watermark"
+                        <TextBox x:Name="txtSearchBookmarks" Margin="8,5,8,5" Height="20">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="TextBox">
+                                                <Grid>
+                                                    <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                                                        <ScrollViewer Margin="0" x:Name="PART_ContentHost"/>
+                                                    </Border>
+                                                    <ContentControl x:Name="Watermark"
                                                                IsHitTestVisible="False"
-                                                               Content="Search Bookmarks"
+                                                               Content="Search"
                                                                Foreground="#888"
                                                                Margin="10,0,0,0"
                                                                VerticalAlignment="Center"
                                                                Opacity="0.8"
                                                                Visibility="Collapsed"/>
-                                            </Grid>
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="Text" Value="">
-                                                    <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Setter Property="Background" Value="White"/>
-                                <Setter Property="BorderBrush" Value="#CCC"/>
-                                <Setter Property="BorderThickness" Value="1"/>
-                                <Setter Property="Padding" Value="8,0,8,0"/>
-                            </Style>
-                        </TextBox.Style>
-                    </TextBox>
-                </StackPanel>
+                                                </Grid>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="Text" Value="">
+                                                        <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Background" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#CCC"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                    <Setter Property="Padding" Value="8,0,8,0"/>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                    </StackPanel>
+                </Border>
                 <ScrollViewer x:Name="BookmarkScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel x:Name="BookmarkStack" Orientation="Vertical" />
                 </ScrollViewer>
@@ -171,7 +180,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-
+                    <Border Grid.Row="0" BorderBrush="#b0b0b0" BorderThickness="0,0,0,1" Background="#c7d6e8">
                     <TextBox x:Name="txtSearchTabs" Margin="8,5,8,5" Height="20" Grid.Row="1" Background="White">
                         <TextBox.Style>
                             <Style TargetType="TextBox">
@@ -184,7 +193,7 @@
                                                 </Border>
                                                 <ContentControl x:Name="Watermark"
                                                                IsHitTestVisible="False"
-                                                               Content="Search Tab List"
+                                                               Content="Search"
                                                                Foreground="#888"
                                                                Margin="10,0,0,0"
                                                                VerticalAlignment="Center"
@@ -205,8 +214,9 @@
                             </Style>
                         </TextBox.Style>
                     </TextBox>
+                    </Border>
                 </Grid>
-                <ScrollViewer x:Name ="TabScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="#E2E6EC">
+                <ScrollViewer x:Name ="TabScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Background="#E2E6EC" Padding="0,3,0,0">
                     <StackPanel x:Name="TabStack"  Orientation="Vertical" Background="#E2E6EC" />
                 </ScrollViewer>
             </Grid>
@@ -254,7 +264,7 @@
                     </Style>
                 </TextBox.Style>
             </TextBox>
-            <StackPanel x:Name="ManageRowsPanel" Orientation="Horizontal" Grid.Column="3" Opacity="0.5" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,8,0" >
+            <StackPanel x:Name="ManageRowsPanel" Orientation="Horizontal" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,8,0" >
                 <Label Content="Rows in this screen" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,0,0" Padding="2,2,4,4"/>
                 <Button x:Name="btnSubtractRowFromFramesGrid" Width="15" Height="15" Background="#f5f5f5" BorderBrush="#b0b0b0" BorderThickness="1" Padding="0,0,0,0" ToolTip="Remove Row from Current Screen" Margin="0,0,5,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
                     <Button.Effect>
